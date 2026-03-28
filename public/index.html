@@ -18,6 +18,12 @@
             padding: 0 12px 80px 12px;
         }
 
+        /* Центрирование контента на ПК */
+        .page-container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
         /* Верхняя навигация (как в оригинале) */
         .top-nav {
             position: sticky;
@@ -268,6 +274,20 @@
             border: 1px solid white;
         }
 
+        /* Увеличенная корзина на мобильных */
+        @media (max-width: 640px) {
+            .cart-fab {
+                width: 64px;
+                height: 64px;
+                font-size: 32px;
+            }
+            .cart-fab .cart-count {
+                font-size: 13px;
+                padding: 2px 6px;
+                min-width: 22px;
+            }
+        }
+
         /* Заголовки категорий */
         .category-title {
             font-size: 18px;
@@ -299,7 +319,7 @@
             cursor: pointer;
         }
 
-        /* Адаптация для десктопа */
+        /* Адаптация для десктопа: чуть больше карточки */
         @media (min-width: 640px) {
             .products-grid {
                 grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -324,20 +344,22 @@
     </style>
 </head>
 <body>
-    <div class="top-nav">
-        <button onclick="location.href='index.html'">Каталог</button>
-        <button onclick="location.href='cart.html'">Корзина</button>
+    <div class="page-container">
+        <div class="top-nav">
+            <button onclick="location.href='index.html'">Каталог</button>
+            <button onclick="location.href='cart.html'">Корзина</button>
+        </div>
+
+        <h1>Каталог</h1>
+
+        <!-- Кнопки категорий -->
+        <div class="category-buttons">
+            <button onclick="document.getElementById('nuts-category').scrollIntoView({behavior: 'smooth'})">Орехи</button>
+            <button onclick="document.getElementById('driedfruits-category').scrollIntoView({behavior: 'smooth'})">Сухофрукты</button>
+        </div>
+
+        <div id="products-container"></div>
     </div>
-
-    <h1>Каталог</h1>
-
-    <!-- Кнопки категорий -->
-    <div class="category-buttons">
-        <button onclick="document.getElementById('nuts-category').scrollIntoView({behavior: 'smooth'})">Орехи</button>
-        <button onclick="document.getElementById('driedfruits-category').scrollIntoView({behavior: 'smooth'})">Сухофрукты</button>
-    </div>
-
-    <div id="products-container"></div>
 
     <div class="cart-fab" onclick="location.href='cart.html'">
         🛒
@@ -514,7 +536,7 @@
                     delete categories[cat];
                 }
             }
-            // Остальные категории (без id для скролла, но можно добавить при необходимости)
+            // Остальные категории
             for (let cat in categories) {
                 html += `<div class="category-title">${cat}</div>`;
                 html += `<div class="products-grid">`;
@@ -529,7 +551,7 @@
 
         function renderProductCard(product) {
             const imageUrl = product.image || 'https://via.placeholder.com/300?text=Нет+фото';
-            // Исключаем вариант "Россыпь", если нужно
+            // Исключаем вариант "Россыпь"
             const variantsToShow = product.variants.filter(v => v.name !== 'Россыпь');
 
             let variantsHtml = '';
@@ -542,13 +564,16 @@
                 if (!isActive) {
                     controlsHtml = `<div class="unavailable">Нет в наличии</div>`;
                 } else if (quantity === 0) {
-                    controlsHtml = `<button class="btn-add" onclick="addToCart(${product.id}, ${variant.id}, ${variant.price}, '${escapeHtml(variant.name)}')">В корзину</button>`;
+                    // Используем JSON.stringify для безопасной передачи строки
+                    const variantNameJson = JSON.stringify(variant.name);
+                    controlsHtml = `<button class="btn-add" onclick="addToCart(${product.id}, ${variant.id}, ${variant.price}, ${variantNameJson})">В корзину</button>`;
                 } else {
+                    const variantNameJson = JSON.stringify(variant.name);
                     controlsHtml = `
                         <div class="quantity-control">
-                            <button onclick="updateQuantity(${product.id}, ${variant.id}, ${quantity - 1}, ${variant.price}, '${escapeHtml(variant.name)}')">−</button>
+                            <button onclick="updateQuantity(${product.id}, ${variant.id}, ${quantity - 1}, ${variant.price}, ${variantNameJson})">−</button>
                             <span class="quantity-value">${quantity}</span>
-                            <button onclick="updateQuantity(${product.id}, ${variant.id}, ${quantity + 1}, ${variant.price}, '${escapeHtml(variant.name)}')">+</button>
+                            <button onclick="updateQuantity(${product.id}, ${variant.id}, ${quantity + 1}, ${variant.price}, ${variantNameJson})">+</button>
                         </div>
                     `;
                 }
