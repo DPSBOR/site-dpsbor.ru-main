@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Вход — Панель управления</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+        .login-container {
+            background: white;
+            border-radius: 32px;
+            padding: 32px 24px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            max-width: 320px;
+            width: 100%;
+        }
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 8px;
+        }
+        .logo span {
+            color: #ff8f00;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+        }
+        .telegram-login {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        /* Принудительное центрирование iframe виджета */
+        .telegram-login iframe {
+            display: block !important;
+            margin: 0 auto !important;
+            width: auto !important;
+            max-width: 100% !important;
+            float: none !important;
+        }
+        .error {
+            color: #dc3545;
+            margin-top: 15px;
+            font-size: 0.85rem;
+            display: none;
+            background: #fff0f0;
+            padding: 8px;
+            border-radius: 10px;
+        }
+        .loading {
+            display: none;
+            margin-top: 15px;
+            color: #666;
+            font-size: 0.85rem;
+        }
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 24px 16px;
+            }
+            .logo {
+                font-size: 1.7rem;
+            }
+            h2 {
+                font-size: 1.2rem;
+                margin-bottom: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">ДП <span>СБОР</span></div>
+        <h2>Панель управления</h2>
+        <div id="telegram-login" class="telegram-login"></div>
+        <div id="error" class="error"></div>
+        <div id="loading" class="loading">Проверка доступа...</div>
+    </div>
+
+    <script>
+        async function onTelegramAuth(user) {
+            console.log('Telegram user:', user);
+            const loadingEl = document.getElementById('loading');
+            const errorEl = document.getElementById('error');
+            loadingEl.style.display = 'block';
+            errorEl.style.display = 'none';
+            try {
+                const response = await fetch('/api/manager/auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        telegram_id: user.id,
+                        name: user.first_name + (user.last_name ? ' ' + user.last_name : ''),
+                        username: user.username
+                    })
+                });
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    localStorage.setItem('manager_token', data.token);
+                    localStorage.setItem('manager_name', data.name);
+                    localStorage.setItem('manager_role', data.role);
+                    window.location.href = '/manager/dashboard.html';
+                } else {
+                    loadingEl.style.display = 'none';
+                    errorEl.style.display = 'block';
+                    errorEl.innerHTML = '❌ ' + (data.message || 'Доступ запрещён');
+                }
+            } catch (err) {
+                console.error('Auth error:', err);
+                loadingEl.style.display = 'none';
+                errorEl.style.display = 'block';
+                errorEl.innerHTML = '❌ Ошибка сервера: ' + err.message;
+            }
+        }
+        async function checkExistingToken() {
+            const token = localStorage.getItem('manager_token');
+            if (token) {
+                try {
+                    const response = await fetch('/api/manager/dashboard', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (response.ok) {
+                        window.location.href = '/manager/dashboard.html';
+                    } else {
+                        localStorage.removeItem('manager_token');
+                    }
+                } catch (err) {
+                    console.error('Token check error:', err);
+                }
+            }
+        }
+        window.onTelegramAuth = onTelegramAuth;
+        checkExistingToken();
+    </script>
+    <script async
+        src="https://telegram.org/js/telegram-widget.js?22"
+        data-telegram-login="dpsbor_site_bot"
+        data-size="large"
+        data-onauth="onTelegramAuth(user)"
+        data-request-access="write">
+    </script>
+</body>
+</html>

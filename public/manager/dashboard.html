@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>DP SBOR — Панель управления</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            overflow-x: hidden;
+        }
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100%;
+            background: #2c3e50;
+            color: white;
+            padding: 20px 0;
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+        .logo {
+            padding: 0 20px 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-bottom: 1px solid #3e5a6b;
+            margin-bottom: 20px;
+            color: #28a745;
+        }
+        .logo span { color: #28a745; }
+        .nav-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #ecf0f1;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .nav-item:hover, .nav-item.active {
+            background: #28a745;
+            color: white;
+        }
+        .badge {
+            background: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 8px;
+            font-size: 12px;
+            margin-left: auto;
+        }
+        .main-content {
+            margin-left: 260px;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            font-size: 24px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 1100;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        .top-bar {
+            background: white;
+            padding: 12px 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-name {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .user-role {
+            background: #e67e22;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: white;
+        }
+        .logout-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .notify-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+        .notify-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .notify-btn.disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+        h1 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stat-title {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .tasks-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .tasks-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .tasks-header h3 {
+            color: #2c3e50;
+        }
+        .completed-btn {
+            background: #95a5a6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .task-card {
+            background: #f8f9fa;
+            border-left: 4px solid #e67e22;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .task-info {
+            flex: 1;
+        }
+        .task-seller {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .task-product {
+            color: #27ae60;
+        }
+        .task-quantity {
+            color: #e67e22;
+        }
+        .task-date {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        .task-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .approve-btn, .reject-btn {
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .approve-btn {
+            background: #27ae60;
+            color: white;
+        }
+        .reject-btn {
+            background: #e74c3c;
+            color: white;
+        }
+        .no-tasks {
+            color: #7f8c8d;
+            text-align: center;
+            padding: 20px;
+        }
+        .direct-sale-actions {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .action-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 25px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        .modal-header h3 {
+            color: #2c3e50;
+        }
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+        .sale-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #e9ecef;
+            position: relative;
+        }
+        .sale-item select, .sale-item input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .remove-item-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            float: right;
+            font-size: 12px;
+        }
+        .add-item-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .sale-summary {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #27ae60;
+        }
+        .sale-summary h4 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .summary-items {
+            margin: 10px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        .summary-total {
+            font-weight: bold;
+            margin-top: 10px;
+            text-align: right;
+            font-size: 1.2em;
+            color: #27ae60;
+        }
+        .confirm-sale-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+        .confirm-sale-btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+        .seller-filter-container {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .seller-filter-container label {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        .seller-filter-container select {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 80%;
+                max-width: 280px;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .sidebar .logo {
+                margin-top: 60px;
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 10px;
+            }
+            .top-bar {
+                padding: 10px 15px;
+            }
+            .user-info {
+                gap: 8px;
+            }
+            .user-name {
+                font-size: 12px;
+            }
+            .user-role {
+                font-size: 10px;
+                padding: 3px 6px;
+            }
+            .logout-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            .notify-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            h1 {
+                font-size: 1.4rem;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            .stat-card {
+                padding: 12px;
+            }
+            .stat-value {
+                font-size: 28px;
+            }
+            .tasks-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            .task-card {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .task-buttons {
+                margin-top: 8px;
+                justify-content: flex-start;
+            }
+            .direct-sale-actions {
+                flex-direction: column;
+            }
+            .action-btn {
+                width: 100%;
+                padding: 12px;
+                font-size: 14px;
+            }
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+                padding: 20px;
+            }
+            .menu-toggle {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="menu-toggle" id="menuToggle">☰</button>
+    <div class="overlay" id="overlay"></div>
+
+    <div class="sidebar" id="sidebar">
+        <div class="logo">DP <span>SBOR</span></div>
+        <a href="/manager/dashboard.html" class="nav-item active">
+            <span class="icon">📊</span> Дашборд
+            <span id="tasks-badge" class="badge" style="display: none;">0</span>
+        </a>
+        <a href="/manager/orders.html" class="nav-item">📦 Заказы</a>
+        <a href="/manager/warehouse.html" class="nav-item">🏪 Склад</a>
+        <!-- Заявки и выплаты удалены -->
+    </div>
+    
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="user-info">
+                <span class="user-name" id="user-name">Загрузка...</span>
+                <span class="user-role" id="user-role"></span>
+                <button class="logout-btn" onclick="logout()">Выйти</button>
+            </div>
+        </div>
+
+        <div class="notify-container">
+            <button id="notify-btn" class="notify-btn" style="display: none;" onclick="enableNotifications()">🔔 Включить уведомления</button>
+        </div>
+        
+        <h1>Дашборд</h1>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-title">Заказов в работе</div>
+                <div class="stat-value" id="processing-orders">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Выполнено</div>
+                <div class="stat-value" id="completed-count">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Выручка</div>
+                <div class="stat-value" id="revenue">0 ₽</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Долг перед Админом</div>
+                <div class="stat-value" id="debt">0 ₽</div>
+            </div>
+        </div>
+        
+        <div class="direct-sale-actions">
+            <button class="action-btn" onclick="openDirectSaleModal()">💰 Зафиксировать прямую продажу</button>
+            <button class="action-btn" onclick="openCompletedSales()" style="background: #3498db;">📜 Завершенные продажи</button>
+            <button class="action-btn" onclick="openPayoutModal()" style="background: #f39c12;">💰 Произвести выплату Админу</button>
+        </div>
+        
+        <div id="tasks-section" class="tasks-section" style="display: none;">
+            <div class="tasks-header">
+                <h3>📋 Задачи на подтверждение</h3>
+                <button class="completed-btn" onclick="openCompletedTasks()">✅ Завершенные задачи</button>
+            </div>
+            <div id="tasks-list">
+                <div class="no-tasks">Загрузка...</div>
+            </div>
+        </div>
+
+        <div id="inventory-tasks-section" class="tasks-section" style="display: none;">
+            <div class="tasks-header">
+                <h3>📦 Задачи инвентаризации</h3>
+            </div>
+            <div id="inventory-tasks-list">
+                <div class="no-tasks">Загрузка...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальные окна (прямая продажа, завершённые продажи, выплата, завершённые задачи) -->
+    <div id="direct-sale-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>💰 Фиксация прямой продажи</h3>
+                <button class="close-modal" onclick="closeDirectSaleModal()">&times;</button>
+            </div>
+            <div id="direct-sale-items-container"></div>
+            <button class="add-item-btn" onclick="addDirectSaleItem()">+ Добавить товар</button>
+            <div id="direct-sale-summary" class="sale-summary" style="display: none;"></div>
+            <button id="confirm-direct-sale-btn" class="confirm-sale-btn" onclick="confirmDirectSale()" disabled>Подтвердить продажу</button>
+        </div>
+    </div>
+
+    <div id="completed-sales-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>💰 Завершённые прямые продажи</h3>
+                <button class="close-modal" onclick="closeCompletedSalesModal()">&times;</button>
+            </div>
+            <div id="seller-filter-container" class="seller-filter-container" style="display: none;">
+                <label>Продавец:</label>
+                <select id="seller-filter" onchange="filterSalesBySeller(this.value)">
+                    <option value="">Все продавцы</option>
+                </select>
+            </div>
+            <div id="completed-sales-list">
+                <div class="no-tasks">Загрузка...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="payout-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>💰 Выплата Админу</h3>
+                <button class="close-modal" onclick="closePayoutModal()">&times;</button>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label>Сумма выплаты (руб.):</label>
+                <input type="number" id="payout-amount" step="100" min="1" style="width: 100%; padding: 8px; margin-top: 5px;">
+            </div>
+            <button onclick="requestPayout()" class="confirm-sale-btn">Запросить подтверждение</button>
+        </div>
+    </div>
+
+    <div id="completed-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>✅ Завершенные задачи</h3>
+                <button class="close-modal" onclick="closeCompletedModal()">&times;</button>
+            </div>
+            <div id="completed-tasks-list">
+                <div class="no-tasks">Загрузка...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUserRole = '';
+        let allProducts = [];
+        let currentSaleItems = [];
+
+        function checkAuth() {
+            const token = localStorage.getItem('manager_token');
+            if (!token) { window.location.href = '/manager/'; return false; }
+            return token;
+        }
+
+        // Гамбургер-меню
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        function toggleMenu() {
+            sidebar.classList.toggle('open');
+            overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+        }
+        menuToggle.addEventListener('click', toggleMenu);
+        overlay.addEventListener('click', toggleMenu);
+        document.querySelectorAll('.nav-item').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 768) toggleMenu();
+            });
+        });
+
+        async function loadDashboard() {
+            const token = checkAuth();
+            try {
+                const response = await fetch('/api/manager/dashboard', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.status === 401) { logout(); return; }
+                const data = await response.json();
+                currentUserRole = data.user.role;
+
+                document.getElementById('user-name').textContent = data.user.name;
+                const roleNames = { 'admin': 'Администратор', 'warehouse_seller': 'Кладовщик-продавец', 'seller': 'Продавец' };
+                document.getElementById('user-role').textContent = roleNames[data.user.role] || data.user.role;
+                document.getElementById('processing-orders').textContent = data.stats.processing_orders;
+                document.getElementById('completed-count').textContent = data.stats.completed_count;
+                document.getElementById('revenue').textContent = data.stats.revenue + ' ₽';
+
+                await loadTasks();
+                await loadInventoryTasks();
+                await loadDirectProducts();
+                await loadDebt();
+
+                if (currentUserRole === 'admin') {
+                    await loadSellers();
+                }
+
+                // Проверка статуса уведомлений
+                await checkNotificationStatus();
+            } catch (err) {
+                console.error('Ошибка загрузки дашборда:', err);
+            }
+        }
+
+        // ========== PUSH-УВЕДОМЛЕНИЯ ==========
+        if ('serviceWorker' in navigator && 'Notification' in window) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(() => console.log('Service Worker зарегистрирован'))
+                .catch(err => console.error('Ошибка регистрации SW:', err));
+        }
+
+        function urlBase64ToUint8Array(base64String) {
+            try {
+                const padding = '='.repeat((4 - base64String.length % 4) % 4);
+                const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+                const rawData = window.atob(base64);
+                const outputArray = new Uint8Array(rawData.length);
+                for (let i = 0; i < rawData.length; ++i) {
+                    outputArray[i] = rawData.charCodeAt(i);
+                }
+                return outputArray;
+            } catch (err) {
+                console.error('Ошибка декодирования публичного ключа VAPID:', err);
+                console.error('Ключ:', base64String);
+                console.error('Длина строки:', base64String.length);
+                return null;
+            }
+        }
+
+    async function subscribeToPush() {
+    const token = localStorage.getItem('manager_token');
+    if (!token) return;
+    if (Notification.permission !== 'granted') return;
+    try {
+        const registration = await navigator.serviceWorker.ready;
+        const vapidPublicKey = 'BL37LyjZqTd-xFpd7xwPcmVWcAJnVRWtNuquwe7xQyGW8zuOnUgQjQKgj1OtAmPsRqHg9Fc3ee80KfDyZ7oZiZQ'; // замените на ваш новый публичный ключ
+        const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+        if (!applicationServerKey) {
+            throw new Error('Не удалось преобразовать публичный ключ');
+        }
+
+        // 1. Получаем существующую подписку
+        let existingSubscription = await registration.pushManager.getSubscription();
+        if (existingSubscription) {
+            // 2. Если она существует, удаляем её и сообщаем серверу
+            console.log('Старая подписка найдена, удаляем...');
+            await existingSubscription.unsubscribe();
+            // Уведомляем сервер, чтобы он удалил старую подписку из базы
+            await fetch('/api/manager/push-unsubscribe', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+        }
+
+        // 3. Создаём новую подписку с новым ключом
+        const subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: applicationServerKey
+        });
+
+        const response = await fetch('/api/manager/push-subscribe', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ subscription })
+        });
+        if (response.ok) {
+            console.log('Подписка на уведомления сохранена');
+            return true;
+        } else {
+            console.error('Ошибка сохранения подписки:', await response.text());
+            return false;
+        }
+    } catch (err) {
+        console.error('Ошибка подписки:', err);
+        return false;
+    }
+}
+        async function checkNotificationStatus() {
+            const btn = document.getElementById('notify-btn');
+            if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+                btn.textContent = '❌ Не поддерживается';
+                btn.disabled = true;
+                btn.classList.add('disabled');
+                btn.style.display = 'inline-block';
+                return;
+            }
+            
+            if (Notification.permission === 'denied') {
+                btn.textContent = '🔕 Уведомления заблокированы';
+                btn.disabled = true;
+                btn.classList.add('disabled');
+                btn.style.display = 'inline-block';
+                return;
+            }
+            
+            if (Notification.permission === 'granted') {
+                const token = localStorage.getItem('manager_token');
+                if (token) {
+                    try {
+                        const response = await fetch('/api/manager/push-subscriptions/check', {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        const data = await response.json();
+                        if (data.subscribed) {
+                            btn.textContent = '✅ Уведомления включены';
+                            btn.disabled = true;
+                            btn.classList.add('disabled');
+                        } else {
+                            btn.textContent = '🔔 Включить уведомления';
+                            btn.disabled = false;
+                            btn.classList.remove('disabled');
+                        }
+                    } catch (err) {
+                        btn.textContent = '🔔 Включить уведомления';
+                        btn.disabled = false;
+                        btn.classList.remove('disabled');
+                    }
+                } else {
+                    btn.textContent = '🔔 Включить уведомления';
+                    btn.disabled = false;
+                    btn.classList.remove('disabled');
+                }
+            } else {
+                btn.textContent = '🔔 Включить уведомления';
+                btn.disabled = false;
+                btn.classList.remove('disabled');
+            }
+            btn.style.display = 'inline-block';
+        }
+
+        async function enableNotifications() {
+            if (!('Notification' in window)) {
+                alert('Ваш браузер не поддерживает уведомления');
+                return;
+            }
+            
+            if (Notification.permission === 'denied') {
+                alert('Уведомления заблокированы. Измените настройки браузера, чтобы разрешить их.');
+                return;
+            }
+            
+            if (Notification.permission === 'granted') {
+                const success = await subscribeToPush();
+                if (success) {
+                    await checkNotificationStatus();
+                } else {
+                    alert('Не удалось включить уведомления. Проверьте консоль.');
+                }
+                return;
+            }
+            
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                const success = await subscribeToPush();
+                if (success) {
+                    await checkNotificationStatus();
+                } else {
+                    alert('Не удалось включить уведомления. Проверьте консоль.');
+                }
+            } else {
+                alert('Уведомления не разрешены. Вы не будете получать оповещения.');
+            }
+            checkNotificationStatus();
+        }
+
+        // ========== ОСТАЛЬНЫЕ ФУНКЦИИ ==========
+        async function loadDebt() {
+            const token = checkAuth();
+            try {
+                const response = await fetch('/api/manager/debt', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                document.getElementById('debt').textContent = data.debt.toFixed(2) + ' ₽';
+            } catch (err) {
+                console.error('Error loading debt:', err);
+                document.getElementById('debt').textContent = 'Ошибка';
+            }
+        }
+
+        async function loadDirectProducts() {
+            const token = checkAuth();
+            try {
+                const response = await fetch('/api/manager/direct-products', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                allProducts = data;
+            } catch (err) {
+                console.error('Error loading direct products:', err);
+            }
+        }
+
+        async function loadSellers() {
+            const token = checkAuth();
+            try {
+                const response = await fetch('/api/manager/sellers-list', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                const select = document.getElementById('seller-filter');
+                select.innerHTML = '<option value="">Все продавцы</option>' + 
+                    data.sellers.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+                document.getElementById('seller-filter-container').style.display = 'flex';
+            } catch (err) {
+                console.error('Error loading sellers:', err);
+            }
+        }
+
+        function openDirectSaleModal() {
+            currentSaleItems = [];
+            document.getElementById('direct-sale-items-container').innerHTML = '';
+            addDirectSaleItem();
+            document.getElementById('direct-sale-summary').style.display = 'none';
+            document.getElementById('confirm-direct-sale-btn').disabled = true;
+            document.getElementById('direct-sale-modal').style.display = 'block';
+        }
+
+        function closeDirectSaleModal() {
+            document.getElementById('direct-sale-modal').style.display = 'none';
+        }
+
+        function addDirectSaleItem() {
+            const container = document.getElementById('direct-sale-items-container');
+            const idx = Date.now() + '_' + Math.random();
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'sale-item';
+            itemDiv.id = `sale-item-${idx}`;
+            itemDiv.setAttribute('data-idx', idx);
+            itemDiv.innerHTML = `
+                <button class="remove-item-btn" onclick="removeDirectSaleItem('${idx}')">✖</button>
+                <select class="sale-product" data-idx="${idx}" onchange="updateSaleItemInfo('${idx}')">
+                    <option value="">Выберите товар</option>
+                    ${allProducts.map(p => `<option value="${p.product_id}" data-variant-id="${p.variant_id}" data-price="${p.price}" data-product-name="${p.product_name}" data-variant-name="${p.variant_name}">${p.product_name} (${p.variant_name}) - ${p.price} руб.</option>`).join('')}
+                </select>
+                <input type="number" class="sale-quantity" id="sale-quantity-${idx}" placeholder="Количество (шт)" step="1" min="1" oninput="updateDirectSaleSummary()">
+                <div class="price-info" id="price-info-${idx}" style="font-size: 12px; color: #666; margin-top: 4px;"></div>
+            `;
+            container.appendChild(itemDiv);
+            updateDirectSaleSummary();
+        }
+
+        function removeDirectSaleItem(idx) {
+            const itemDiv = document.getElementById(`sale-item-${idx}`);
+            if (itemDiv) itemDiv.remove();
+            updateDirectSaleSummary();
+        }
+
+        function updateSaleItemInfo(idx) {
+            const select = document.querySelector(`#sale-item-${idx} .sale-product`);
+            const selectedOption = select.options[select.selectedIndex];
+            const price = selectedOption ? selectedOption.dataset.price : 0;
+            const priceDiv = document.getElementById(`price-info-${idx}`);
+            if (priceDiv) {
+                priceDiv.textContent = `Цена: ${price} руб. за шт.`;
+            }
+            updateDirectSaleSummary();
+        }
+
+        function updateDirectSaleSummary() {
+            const items = [];
+            const itemDivs = document.querySelectorAll('.sale-item');
+            let total = 0;
+
+            itemDivs.forEach(div => {
+                const select = div.querySelector('.sale-product');
+                const quantityInput = div.querySelector('.sale-quantity');
+                const selectedOption = select.options[select.selectedIndex];
+                if (selectedOption && selectedOption.value) {
+                    const productId = selectedOption.value;
+                    const productName = selectedOption.dataset.productName;
+                    const variantId = selectedOption.dataset.variantId;
+                    const variantName = selectedOption.dataset.variantName;
+                    const price = parseFloat(selectedOption.dataset.price);
+                    const quantity = parseInt(quantityInput.value);
+                    if (quantity > 0) {
+                        items.push({
+                            product_id: parseInt(productId),
+                            product_name: productName,
+                            variant_id: parseInt(variantId),
+                            variant_name: variantName,
+                            quantity: quantity,
+                            price: price
+                        });
+                        total += price * quantity;
+                    }
+                }
+            });
+
+            currentSaleItems = items;
+
+            const summaryDiv = document.getElementById('direct-sale-summary');
+            const confirmBtn = document.getElementById('confirm-direct-sale-btn');
+
+            if (items.length === 0) {
+                summaryDiv.style.display = 'none';
+                confirmBtn.disabled = true;
+                return;
+            }
+
+            const itemsHtml = items.map(item => `
+                <div class="summary-item">
+                    <span>${item.product_name} (${item.variant_name}) × ${item.quantity} шт</span>
+                    <span>${item.price * item.quantity} руб.</span>
+                </div>
+            `).join('');
+
+            summaryDiv.innerHTML = `
+                <h4>Состав продажи</h4>
+                <div class="summary-items">
+                    ${itemsHtml}
+                </div>
+                <div class="summary-total">Итого: ${total} руб.</div>
+            `;
+            summaryDiv.style.display = 'block';
+            confirmBtn.disabled = false;
+        }
+
+        async function confirmDirectSale() {
+            if (currentSaleItems.length === 0) {
+                alert('Добавьте хотя бы один товар');
+                return;
+            }
+
+            const total = currentSaleItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            if (!confirm(`Подтвердить продажу на сумму ${total} руб.?`)) return;
+
+            const token = checkAuth();
+            const confirmBtn = document.getElementById('confirm-direct-sale-btn');
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Отправка...';
+
+            try {
+                const response = await fetch('/api/manager/direct-sale', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ items: currentSaleItems, total })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    alert(`✅ Продажа зафиксирована!\nНомер заказа: ${data.orderNumber}`);
+                    closeDirectSaleModal();
+                    loadDashboard();
+                } else {
+                    alert('Ошибка: ' + (data.error || 'Неизвестная ошибка'));
+                }
+            } catch (err) {
+                console.error('Direct sale error:', err);
+                alert('Ошибка при создании продажи');
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = 'Подтвердить продажу';
+            }
+        }
+
+        async function openCompletedSales(sellerId = null) {
+            const token = checkAuth();
+            let url = '/api/manager/direct-sales';
+            if (sellerId) {
+                url += `?seller_id=${sellerId}`;
+            }
+            try {
+                const response = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                const container = document.getElementById('completed-sales-list');
+                if (!data.sales || data.sales.length === 0) {
+                    container.innerHTML = '<div class="no-tasks">Нет завершённых прямых продаж</div>';
+                } else {
+                    container.innerHTML = data.sales.map(sale => {
+                        const itemsHtml = sale.items.map(item => `
+                            <div>${item.name} (${item.variantName || item.variant_name}) × ${item.quantity} = ${item.price * item.quantity} руб.</div>
+                        `).join('');
+                        const sellerInfo = currentUserRole === 'admin' ? `<div style="font-size: 11px; color: #7f8c8d;">Продавец: ${sale.seller_name || '—'}</div>` : '';
+                        return `
+                            <div class="sale-item" style="border-left-color: #27ae60;">
+                                <div style="font-weight: bold;">📋 Заказ №${sale.order_number}</div>
+                                ${sellerInfo}
+                                <div style="font-size: 11px; color: #7f8c8d;">📅 ${new Date(sale.completed_at).toLocaleString()}</div>
+                                <div style="margin-top: 5px; padding-left: 10px;">${itemsHtml}</div>
+                                <div style="margin-top: 8px; font-weight: bold; text-align: right;">Итого: ${sale.total} руб.</div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+                document.getElementById('completed-sales-modal').style.display = 'block';
+            } catch (err) {
+                console.error('Error loading sales:', err);
+                alert('Ошибка загрузки продаж');
+            }
+        }
+
+        function filterSalesBySeller(sellerId) {
+            openCompletedSales(sellerId || null);
+        }
+
+        function closeCompletedSalesModal() {
+            document.getElementById('completed-sales-modal').style.display = 'none';
+        }
+
+        function openPayoutModal() {
+            document.getElementById('payout-amount').value = '';
+            document.getElementById('payout-modal').style.display = 'block';
+        }
+
+        function closePayoutModal() {
+            document.getElementById('payout-modal').style.display = 'none';
+        }
+
+        async function requestPayout() {
+            const amount = parseFloat(document.getElementById('payout-amount').value);
+            if (!amount || amount <= 0) {
+                alert('Введите корректную сумму');
+                return;
+            }
+            const token = checkAuth();
+            try {
+                const response = await fetch('/api/manager/request-payout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ amount })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    alert(`✅ Запрос на выплату ${amount} руб. отправлен!`);
+                    closePayoutModal();
+                    loadDebt();
+                } else {
+                    alert('Ошибка: ' + (data.error || 'Неизвестная ошибка'));
+                }
+            } catch (err) {
+                console.error('Request payout error:', err);
+                alert('Ошибка при отправке запроса');
+            }
+        }
+
+        async function loadTasks() {
+            if (currentUserRole !== 'admin' && currentUserRole !== 'warehouse_seller') return;
+            const token = checkAuth();
+            const tasksSection = document.getElementById('tasks-section');
+            tasksSection.style.display = 'block';
+            try {
+                const transferResponse = await fetch('/api/manager/tasks', { headers: { 'Authorization': `Bearer ${token}` } });
+                const transferData = await transferResponse.json();
+                
+                let payoutRequests = [];
+                if (currentUserRole === 'admin') {
+                    const payoutResponse = await fetch('/api/manager/payout-requests', { headers: { 'Authorization': `Bearer ${token}` } });
+                    const payoutData = await payoutResponse.json();
+                    payoutRequests = payoutData.requests || [];
+                }
+                
+                const tasksCount = transferData.tasks.length + payoutRequests.length;
+                const badge = document.getElementById('tasks-badge');
+                if (tasksCount > 0) {
+                    badge.textContent = tasksCount;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+                
+                const container = document.getElementById('tasks-list');
+                if (transferData.tasks.length === 0 && payoutRequests.length === 0) {
+                    container.innerHTML = '<div class="no-tasks">Нет активных задач</div>';
+                } else {
+                    let html = '';
+                    html += transferData.tasks.map(task => `
+                        <div class="task-card" data-id="${task.id}" data-type="transfer">
+                            <div class="task-info">
+                                <div class="task-seller">👤 ${task.seller_name}</div>
+                                <div class="task-product">📦 ${task.product_name} (${task.variant_name})</div>
+                                <div class="task-quantity">📊 Количество: ${task.quantity} шт</div>
+                                <div class="task-date">📅 ${new Date(task.created_at).toLocaleString()}</div>
+                            </div>
+                            <div class="task-buttons">
+                                <button class="approve-btn" onclick="approveTask(${task.id})">✅ Подтвердить</button>
+                                <button class="reject-btn" onclick="rejectTask(${task.id})">❌ Отклонить</button>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    html += payoutRequests.map(req => `
+                        <div class="task-card" data-id="${req.id}" data-type="payout">
+                            <div class="task-info">
+                                <div class="task-seller">👤 ${req.seller_name}</div>
+                                <div class="task-product">💰 Выплата: ${req.amount} руб.</div>
+                                <div class="task-date">📅 ${new Date(req.created_at).toLocaleString()}</div>
+                            </div>
+                            <div class="task-buttons">
+                                <button class="approve-btn" onclick="approvePayout(${req.id})">✅ Подтвердить</button>
+                                <button class="reject-btn" onclick="rejectPayout(${req.id})">❌ Отклонить</button>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    container.innerHTML = html;
+                }
+            } catch (err) { console.error('Tasks error:', err); }
+        }
+
+        async function approvePayout(requestId) {
+            const token = checkAuth();
+            try {
+                const response = await fetch(`/api/manager/payout-requests/${requestId}/approve`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    alert('✅ Выплата подтверждена');
+                    loadTasks();
+                } else {
+                    const error = await response.json();
+                    alert('Ошибка: ' + error.error);
+                }
+            } catch (err) {
+                console.error('Approve payout error:', err);
+                alert('Ошибка соединения');
+            }
+        }
+
+        async function rejectPayout(requestId) {
+            const token = checkAuth();
+            try {
+                const response = await fetch(`/api/manager/payout-requests/${requestId}/reject`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    alert('❌ Выплата отклонена');
+                    loadTasks();
+                } else {
+                    const error = await response.json();
+                    alert('Ошибка: ' + error.error);
+                }
+            } catch (err) {
+                console.error('Reject payout error:', err);
+                alert('Ошибка соединения');
+            }
+        }
+
+        async function loadInventoryTasks() {
+            if (currentUserRole !== 'admin') return;
+            const token = checkAuth();
+            const section = document.getElementById('inventory-tasks-section');
+            section.style.display = 'block';
+            try {
+                const response = await fetch('/api/manager/inventory-tasks', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await response.json();
+                const container = document.getElementById('inventory-tasks-list');
+                if (!data.tasks || data.tasks.length === 0) {
+                    container.innerHTML = '<div class="no-tasks">Нет задач инвентаризации</div>';
+                } else {
+                    container.innerHTML = data.tasks.map(task => `
+                        <div class="task-card" data-id="${task.id}">
+                            <div class="task-info">
+                                <div class="task-seller">👤 ${task.seller_name}</div>
+                                <div class="task-product">📦 ${task.product_name} (${task.variant_name})</div>
+                                <div class="task-quantity">⚠️ ${task.reason}</div>
+                                <div class="task-date">📅 ${new Date(task.created_at).toLocaleString()}</div>
+                            </div>
+                            <div class="task-buttons">
+                                <button class="approve-btn" onclick="resolveInventoryTask(${task.id})">✅ Выполнено</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) { console.error('Inventory tasks error:', err); }
+        }
+
+        async function resolveInventoryTask(taskId) {
+            if (!confirm('Отметить задачу как выполненную?')) return;
+            const token = checkAuth();
+            try {
+                const response = await fetch(`/api/manager/inventory-tasks/${taskId}/resolve`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    alert('✅ Задача отмечена как выполненная');
+                    loadInventoryTasks();
+                } else {
+                    const error = await response.json();
+                    alert('Ошибка: ' + (error.error || 'Неизвестная ошибка'));
+                }
+            } catch (err) { alert('Ошибка соединения'); }
+        }
+
+        async function approveTask(taskId) {
+            const token = checkAuth();
+            const response = await fetch(`/api/manager/tasks/${taskId}/approve`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                alert('✅ Заявка подтверждена');
+                loadDashboard();
+            } else {
+                const error = await response.json();
+                alert('Ошибка: ' + error.error);
+            }
+        }
+
+        async function rejectTask(taskId) {
+            const token = checkAuth();
+            const response = await fetch(`/api/manager/tasks/${taskId}/reject`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                alert('❌ Заявка отклонена');
+                loadDashboard();
+            } else {
+                const error = await response.json();
+                alert('Ошибка: ' + error.error);
+            }
+        }
+
+        async function openCompletedTasks() {
+            const token = checkAuth();
+            const response = await fetch('/api/manager/tasks/completed', { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await response.json();
+            const container = document.getElementById('completed-tasks-list');
+            if (data.tasks.length === 0) {
+                container.innerHTML = '<div class="no-tasks">Нет завершённых задач</div>';
+            } else {
+                container.innerHTML = data.tasks.map(task => {
+                    const statusText = task.status === 'approved' ? '✅ Подтверждена' : '❌ Отклонена';
+                    const statusClass = task.status === 'approved' ? 'status-approved' : 'status-rejected';
+                    return `
+                        <div class="completed-task-item">
+                            <strong>👤 ${task.seller_name}</strong>
+                            <span class="completed-task-status ${statusClass}">${statusText}</span>
+                            <div>📦 ${task.product_name} (${task.variant_name}) — ${task.quantity} шт</div>
+                            <div class="task-date">📅 ${new Date(task.updated_at).toLocaleString()}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            document.getElementById('completed-modal').style.display = 'block';
+        }
+
+        function closeCompletedModal() {
+            document.getElementById('completed-modal').style.display = 'none';
+        }
+
+        function logout() {
+            localStorage.removeItem('manager_token');
+            window.location.href = '/manager/';
+        }
+
+        if (checkAuth()) {
+            loadDashboard();
+        }
+    </script>
+</body>
+</html>

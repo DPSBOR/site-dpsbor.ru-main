@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <title>Оформление заказа</title>
+    <style>
+        /* все стили оставляем без изменений, как в вашем файле */
+        body {
+            font-family: Arial, sans-serif;
+            padding: 10px;
+            background: #f5f5f5;
+            margin: 0;
+            padding-bottom: 80px;
+        }
+        .top-nav {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-around;
+            background: #fff;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .top-nav button {
+            background: transparent;
+            color: #28a745;
+            border: 1px solid #28a745;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            width: 45%;
+        }
+        .top-nav button:hover {
+            background: #28a745;
+            color: white;
+        }
+        h1 { margin: 10px 0; }
+        .order-summary { background: white; border-radius: 8px; padding: 10px; margin-bottom: 20px; }
+        .order-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee; }
+        .order-total { font-weight: bold; margin-top: 10px; text-align: right; }
+        .section { background: white; border-radius: 8px; padding: 10px; margin-bottom: 20px; }
+        .section-title { font-weight: bold; margin-bottom: 10px; }
+        .radio-group-vertical {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .radio-group-vertical label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .address-option { margin-left: 20px; padding: 5px; }
+        .address-input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 5px; margin-top: 5px; }
+        .delivery-block { margin-top: 10px; padding: 10px; background: #f9f9f9; border-radius: 5px; display: none; }
+        button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .notice { font-size: 0.9em; color: #666; margin: 5px 0; }
+        .free-delivery-note {
+            font-weight: bold;
+            color: #28a745;
+            margin-top: 5px;
+            font-size: 1.1em;
+        }
+        .cart-fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            color: #28a745;
+            border: 2px solid #28a745;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            font-size: 28px;
+            z-index: 1000;
+        }
+        .cart-fab .cart-count {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: red;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 20% auto;
+            padding: 20px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 340px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 12px;
+            right: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #aaa;
+            cursor: pointer;
+            background: none;
+            border: none;
+            width: auto;
+            padding: 0;
+            margin: 0;
+        }
+        .close-modal:hover {
+            color: #333;
+        }
+        
+        .modal h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 1.4em;
+        }
+        
+        .order-number {
+            font-size: 1.3em;
+            color: #28a745;
+            margin: 5px 0 15px 0;
+            font-weight: bold;
+            background: #e8f5e9;
+            padding: 8px;
+            border-radius: 8px;
+        }
+        
+        .copy-number-button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            margin: 10px 0;
+            transition: background 0.2s;
+        }
+        .copy-number-button.copied {
+            background: #6c757d;
+        }
+        
+        .messenger-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .messenger-button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            color: white;
+        }
+        
+        .messenger-button.telegram {
+            background: #0088cc;
+        }
+        
+        .messenger-button.telegram:hover {
+            background: #006699;
+        }
+        
+        .messenger-button.vk {
+            background: #4a76a8;
+        }
+        
+        .messenger-button.vk:hover {
+            background: #3a5a80;
+        }
+        
+        .messenger-button.max {
+            background: #9b59b6;
+        }
+        
+        .messenger-button.max:hover {
+            background: #8e44ad;
+        }
+        
+        .cancel-button {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: auto;
+            font-size: 14px;
+            margin-top: 10px;
+            display: inline-block;
+        }
+        
+        .cancel-button:hover {
+            background: #c82333;
+        }
+        
+        .instruction {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 12px;
+            margin: 10px 0;
+            text-align: left;
+            font-size: 14px;
+        }
+        .instruction p {
+            margin: 0;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-nav">
+        <button onclick="location.href='index.html'">Каталог</button>
+        <button onclick="location.href='cart.html'">Корзина</button>
+    </div>
+
+    <h1>Оформление заказа</h1>
+
+    <div class="order-summary" id="order-summary">
+        <h2>Заказ</h2>
+        <div id="items-list"></div>
+        <div class="order-total" id="total-amount"></div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Способ оплаты</div>
+        <div class="radio-group-vertical">
+            <label><input type="radio" name="payment" value="cash" checked> Наличные (приоритет)</label>
+            <label><input type="radio" name="payment" value="transfer"> Перевод по номеру</label>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Способ получения</div>
+        <div class="radio-group-vertical">
+            <label><input type="radio" name="delivery" value="pickup" checked> Самовывоз</label>
+            <label><input type="radio" name="delivery" value="courier"> Доставка курьером</label>
+        </div>
+
+        <div id="pickup-block" class="delivery-block" style="display: block;"></div>
+
+        <div id="courier-block" class="delivery-block">
+            <div class="notice">Доставка сервисом Яндекс за счет покупателя</div>
+            <div class="free-delivery-note">При заказе от 15 000 руб БЕСПЛАТНО</div>
+            <div>Укажите адрес</div>
+            <input type="text" id="courier-address" class="address-input" placeholder="Адрес доставки">
+        </div>
+    </div>
+
+    <button id="confirm-button">Подтвердить заказ</button>
+
+    <div id="success-modal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" id="close-modal-btn">&times;</button>
+            <h3>Заказ готов к оформлению</h3>
+            <div id="modal-order-number" class="order-number"></div>
+            
+            <button id="copy-number-btn" class="copy-number-button">Скопировать номер заказа</button>
+            
+            <div class="instruction">
+                <p>Выберите удобный мессенджер для связи.</p>
+                <p>Пришлите нам ТОЛЬКО номер заказа: <strong id="instruction-order-number"></strong></p>
+                <p>Так мы сможем с Вами связаться🟢</p>
+            </div>
+            
+            <div class="messenger-buttons">
+                <a id="telegram-link" class="messenger-button telegram" target="_blank">Telegram</a>
+                <a id="vk-link" class="messenger-button vk" target="_blank">ВКонтакте</a>
+                <a id="max-link" class="messenger-button max" target="_blank">MAX</a>
+            </div>
+            
+            <button id="cancel-order-btn" class="cancel-button">Отменить заказ</button>
+        </div>
+    </div>
+
+    <div class="cart-fab" onclick="location.href='cart.html'">
+        🛒
+        <span class="cart-count" id="cart-count">0</span>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        // ---- МНОГОПОЛЬЗОВАТЕЛЬСКИЙ РЕЖИМ ----
+        let userId = tg.initDataUnsafe?.user?.id;
+        if (!userId) {
+            let storedId = localStorage.getItem('temp_user_id');
+            if (!storedId) {
+                storedId = 'temp_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('temp_user_id', storedId);
+            }
+            userId = storedId;
+        }
+        console.log('Current userId:', userId);
+
+        const CART_STORAGE_KEY = `cart_${userId}`;
+        const requestId = crypto.randomUUID();
+
+        let cart = null;
+        let products = [];
+        let pickupLocations = [];
+        let currentOrderTotal = 0;
+        let currentOrderNumber = null;
+        let currentOrderId = null;
+        let maxBotName = null;
+
+        // Вспомогательная функция fetch с таймаутом
+        async function fetchWithTimeout(url, options = {}, timeout = 8000) {
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+            try {
+                const response = await fetch(url, { ...options, signal: controller.signal });
+                clearTimeout(id);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return await response.json();
+            } catch (err) {
+                clearTimeout(id);
+                throw err;
+            }
+        }
+
+        // Загрузка корзины: сначала с сервера, при ошибке из localStorage
+        async function loadCart() {
+            try {
+                const cartData = await fetchWithTimeout(`/api/cart/${userId}`);
+                cart = cartData;
+                if (!cart.items) cart = { items: [] };
+                // сохраняем в localStorage актуальную версию
+                localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart.items));
+            } catch (err) {
+                console.warn('Не удалось загрузить корзину с сервера, используем локальную');
+                const stored = localStorage.getItem(CART_STORAGE_KEY);
+                if (stored) {
+                    try {
+                        cart = { items: JSON.parse(stored) };
+                    } catch (e) {
+                        cart = { items: [] };
+                    }
+                } else {
+                    cart = { items: [] };
+                }
+            }
+        }
+
+        // Сохранить корзину в localStorage
+        function saveCartToLocalStorage() {
+            if (cart && cart.items) {
+                localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart.items));
+            }
+        }
+
+        // Очистить корзину (локально и на сервере)
+        async function clearCart() {
+            // Удаляем корзину на сервере
+            try {
+                for (const item of cart.items) {
+                    await fetchWithTimeout('/api/cart/remove', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId, productId: item.productId, variantId: item.variantId })
+                    });
+                }
+            } catch (err) {
+                console.warn('Не удалось очистить корзину на сервере', err);
+            }
+            cart.items = [];
+            localStorage.removeItem(CART_STORAGE_KEY);
+        }
+
+        async function loadConfig() {
+            try {
+                const data = await fetchWithTimeout('/api/config');
+                maxBotName = data.maxBotName;
+            } catch (err) {
+                console.error('Ошибка загрузки конфигурации:', err);
+            }
+        }
+
+        async function loadProducts() {
+            try {
+                products = await fetchWithTimeout('/api/products');
+                if (!Array.isArray(products)) products = [];
+            } catch (err) {
+                console.warn('Не удалось загрузить товары', err);
+                products = [];
+            }
+        }
+
+        async function loadPickupLocations() {
+            try {
+                pickupLocations = await fetchWithTimeout('/api/pickup-locations');
+                if (!Array.isArray(pickupLocations)) pickupLocations = [];
+            } catch (err) {
+                console.warn('Не удалось загрузить точки самовывоза', err);
+                pickupLocations = [];
+            }
+        }
+
+        async function loadData() {
+            await loadConfig();
+            await loadProducts();
+            await loadCart();
+            await loadPickupLocations();
+            
+            // Если корзина пуста, перенаправляем в каталог
+            if (!cart || !cart.items || cart.items.length === 0) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            renderOrderSummary();
+            updateCartCount();
+            renderPickupLocations();
+        }
+
+        function renderOrderSummary() {
+            const itemsList = document.getElementById('items-list');
+            itemsList.innerHTML = '';
+
+            let total = 0;
+            cart.items.forEach(item => {
+                const product = products.find(p => p.id === item.productId);
+                if (!product) return;
+                // В корзине хранится цена на момент добавления? Предположим, что в item есть priceAtTime
+                const price = item.priceAtTime || 0;
+                const itemTotal = price * item.quantity;
+                total += itemTotal;
+
+                const variantDisplay = item.variantName ? item.variantName.replace('Упаковка', 'Уп.') : '';
+
+                const div = document.createElement('div');
+                div.className = 'order-item';
+                div.innerHTML = `
+                    <span>${product.name} (${variantDisplay}) × ${item.quantity}</span>
+                    <span>${itemTotal} руб.</span>
+                `;
+                itemsList.appendChild(div);
+            });
+
+            currentOrderTotal = total;
+            document.getElementById('total-amount').innerText = `Сумма заказа: ${total} руб.`;
+        }
+
+        function updateCartCount() {
+            const totalItems = cart?.items.reduce((sum, item) => sum + item.quantity, 0) || 0;
+            document.getElementById('cart-count').textContent = totalItems;
+        }
+
+        function renderPickupLocations() {
+            const container = document.getElementById('pickup-block');
+            if (!container) return;
+
+            const districts = {};
+            pickupLocations.forEach(loc => {
+                if (!districts[loc.district]) districts[loc.district] = [];
+                districts[loc.district].push(loc);
+            });
+
+            let html = '';
+            for (const [district, locations] of Object.entries(districts)) {
+                html += `<div class="address-option"><strong>${district}</strong><br>`;
+                locations.forEach(loc => {
+                    html += `<label><input type="radio" name="pickup-address" value="${loc.address}"> ${loc.address}</label><br>`;
+                });
+                html += `</div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        const deliveryRadios = document.querySelectorAll('input[name="delivery"]');
+        const pickupBlock = document.getElementById('pickup-block');
+        const courierBlock = document.getElementById('courier-block');
+
+        function updateDeliveryBlocks() {
+            const selected = document.querySelector('input[name="delivery"]:checked').value;
+            pickupBlock.style.display = 'none';
+            courierBlock.style.display = 'none';
+            if (selected === 'pickup') pickupBlock.style.display = 'block';
+            else if (selected === 'courier') courierBlock.style.display = 'block';
+        }
+
+        deliveryRadios.forEach(radio => {
+            radio.addEventListener('change', updateDeliveryBlocks);
+        });
+        updateDeliveryBlocks();
+
+        function showModal(orderId, orderNumber) {
+            currentOrderId = orderId;
+            currentOrderNumber = orderNumber;
+            
+            document.getElementById('modal-order-number').innerHTML = `№${orderNumber}`;
+            document.getElementById('instruction-order-number').textContent = orderNumber;
+            document.getElementById('success-modal').style.display = 'block';
+            
+            const copyBtn = document.getElementById('copy-number-btn');
+            copyBtn.onclick = () => {
+                navigator.clipboard.writeText(orderNumber);
+                copyBtn.textContent = 'Номер заказа скопирован';
+                copyBtn.classList.add('copied');
+                setTimeout(() => {
+                    copyBtn.textContent = 'Скопировать номер заказа';
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+            };
+        }
+
+        async function cancelOrder() {
+            if (!confirm('Вы уверены, что хотите отменить заказ?')) return;
+            try {
+                await fetchWithTimeout(`/api/order/${currentOrderId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'Отменен' })
+                });
+                window.location.href = 'index.html';
+            } catch (err) {
+                console.error('Ошибка:', err);
+                alert('Ошибка при отмене заказа');
+            }
+        }
+
+        function closeModalAndGoToCatalog() {
+            document.getElementById('success-modal').style.display = 'none';
+            window.location.href = 'index.html';
+        }
+
+        document.getElementById('close-modal-btn').onclick = closeModalAndGoToCatalog;
+        document.getElementById('cancel-order-btn').onclick = cancelOrder;
+
+        const confirmBtn = document.getElementById('confirm-button');
+        confirmBtn.addEventListener('click', async (e) => {
+            e.target.disabled = true;
+
+            try {
+                const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
+                const deliveryType = document.querySelector('input[name="delivery"]:checked').value;
+
+                let address = '';
+                if (deliveryType === 'pickup') {
+                    const pickupAddress = document.querySelector('input[name="pickup-address"]:checked');
+                    if (!pickupAddress) {
+                        alert('Выберите адрес самовывоза');
+                        e.target.disabled = false;
+                        return;
+                    }
+                    address = pickupAddress.value;
+                } else if (deliveryType === 'courier') {
+                    address = document.getElementById('courier-address').value.trim();
+                    if (!address) {
+                        alert('Введите адрес доставки');
+                        e.target.disabled = false;
+                        return;
+                    }
+                }
+
+                const user = tg.initDataUnsafe?.user;
+                const userName = user?.first_name 
+                    ? (user.first_name + (user.last_name ? ' ' + user.last_name : ''))
+                    : 'Покупатель';
+                const telegramId = user?.id ? String(user.id) : null;
+
+                const contact = {
+                    name: userName,
+                    phone: '0000000000',
+                    address: address,
+                    paymentMethod: paymentMethod,
+                    deliveryType: deliveryType,
+                    messenger: 'telegram',
+                    username: user?.username,
+                    userId: userId,
+                    telegram_id: telegramId,
+                    telegram_name: userName
+                };
+
+                console.log('📦 Сохраняемый contact:', contact);
+
+                if (!cart || !cart.items || cart.items.length === 0) {
+                    alert('Корзина пуста');
+                    e.target.disabled = false;
+                    return;
+                }
+
+                const orderData = {
+                    userId: userId,
+                    contact: contact,
+                    requestId: requestId,
+                    total: currentOrderTotal,
+                    items: cart.items.map(item => ({
+                        ...item,
+                        price: item.priceAtTime
+                    }))
+                };
+
+                const response = await fetchWithTimeout('/api/order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+
+                if (response) {
+                    const result = response;
+                    console.log('✅ Ответ от сервера:', result);
+                    
+                    const telegramLink = `tg://resolve?domain=dpsbor_site_bot&start=order_${result.orderNumber}`;
+                    document.getElementById('telegram-link').href = telegramLink;
+                    
+                    const vkLink = `https://vk.me/public236751492?ref=order_${result.orderNumber}`;
+                    document.getElementById('vk-link').href = vkLink;
+                    
+                    let maxLink = '#';
+                    if (maxBotName) {
+                        maxLink = `https://max.ru/${maxBotName}?start=order_${result.orderNumber}`;
+                    }
+                    document.getElementById('max-link').href = maxLink;
+                    
+                    showModal(result.id || 'temp_id', result.orderNumber);
+                    
+                    // Очищаем корзину после успешного заказа
+                    await clearCart();
+                    updateCartCount();
+                } else {
+                    console.error('Ошибка при оформлении заказа');
+                    alert('Ошибка при оформлении заказа. Попробуйте ещё раз.');
+                }
+            } catch (err) {
+                console.error('❌ Критическая ошибка:', err);
+                alert('Произошла ошибка при оформлении заказа');
+            } finally {
+                e.target.disabled = false;
+            }
+        });
+
+        loadData();
+    </script>
+</body>
+</html>
