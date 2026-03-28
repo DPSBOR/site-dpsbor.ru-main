@@ -6,7 +6,6 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <title>Магазин - Каталог</title>
     <style>
-        /* ----- ОБЩИЕ СТИЛИ ----- */
         * {
             margin: 0;
             padding: 0;
@@ -55,7 +54,7 @@
             color: #1e1e1e;
         }
 
-        /* Сетка товаров — компактная, 2–3 карточки в строку */
+        /* Сетка: 2-3 карточки в строку */
         .products-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -66,16 +65,16 @@
         /* Карточка товара */
         .product-card {
             background: white;
-            border-radius: 16px;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
             transition: transform 0.2s, box-shadow 0.2s;
             display: flex;
             flex-direction: column;
         }
         .product-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
         }
 
         .product-image {
@@ -86,7 +85,7 @@
         }
 
         .product-info {
-            padding: 10px;
+            padding: 8px;
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -103,7 +102,7 @@
             font-size: 11px;
             color: #6b7280;
             margin-bottom: 8px;
-            line-height: 1.4;
+            line-height: 1.3;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
@@ -117,7 +116,7 @@
 
         .variant-item {
             border-top: 1px solid #edf2f7;
-            padding: 10px 0 6px 0;
+            padding: 8px 0 4px 0;
         }
         .variant-item:first-child {
             border-top: none;
@@ -125,7 +124,7 @@
         }
 
         .variant-pack {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 500;
             color: #4a5568;
             text-transform: uppercase;
@@ -141,10 +140,10 @@
         }
 
         .variant-price {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 700;
             color: #28a745;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         /* Кнопки управления количеством */
@@ -159,7 +158,7 @@
             color: white;
             border: none;
             padding: 6px 10px;
-            border-radius: 30px;
+            border-radius: 20px;
             font-size: 12px;
             font-weight: 500;
             cursor: pointer;
@@ -176,13 +175,13 @@
             align-items: center;
             gap: 6px;
             background: #f1f5f9;
-            border-radius: 30px;
-            padding: 4px 6px;
+            border-radius: 20px;
+            padding: 2px 6px;
         }
         .quantity-control button {
             background: none;
             border: none;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
             color: #28a745;
             cursor: pointer;
@@ -228,7 +227,7 @@
             align-items: center;
             cursor: pointer;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            font-size: 26px;
+            font-size: 24px;
             z-index: 1000;
             transition: transform 0.1s;
         }
@@ -237,15 +236,15 @@
         }
         .cart-fab .cart-count {
             position: absolute;
-            top: -2px;
-            right: -2px;
+            top: 0;
+            right: 0;
             background: red;
             color: white;
             border-radius: 50%;
-            padding: 2px 6px;
+            padding: 2px 5px;
             font-size: 11px;
             font-weight: bold;
-            min-width: 20px;
+            min-width: 18px;
             text-align: center;
         }
 
@@ -262,15 +261,21 @@
             border-radius: 12px;
             text-align: center;
             margin: 20px;
+            font-size: 14px;
         }
         .retry-button {
             background: #28a745;
             color: white;
             border: none;
-            padding: 8px 16px;
+            padding: 6px 12px;
             border-radius: 8px;
-            margin-top: 10px;
+            margin-top: 8px;
             cursor: pointer;
+        }
+        h2 {
+            margin: 20px 0 8px 0;
+            font-size: 18px;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -447,7 +452,7 @@
 
             for (let cat of order) {
                 if (categories[cat]) {
-                    html += `<h2 style="margin: 24px 0 8px 0; font-size: 18px; font-weight: 600;">${cat}</h2>`;
+                    html += `<h2>${cat}</h2>`;
                     html += `<div class="products-grid">`;
                     categories[cat].forEach(product => {
                         html += renderProductCard(product);
@@ -457,7 +462,7 @@
                 }
             }
             for (let cat in categories) {
-                html += `<h2 style="margin: 24px 0 8px 0; font-size: 18px; font-weight: 600;">${cat}</h2>`;
+                html += `<h2>${cat}</h2>`;
                 html += `<div class="products-grid">`;
                 categories[cat].forEach(product => {
                     html += renderProductCard(product);
@@ -469,7 +474,7 @@
         }
 
         function renderProductCard(product) {
-            const imageUrl = product.image || 'https://via.placeholder.com/300?text=Нет+фото';
+            const imageUrl = product.image || 'https://via.placeholder.com/200?text=Нет+фото';
             const variantsToShow = product.variants.filter(v => v.name !== 'Россыпь');
 
             let variantsHtml = '';
