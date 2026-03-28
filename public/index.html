@@ -468,6 +468,7 @@
 
         // ----- Синхронизация элемента корзины -----
         async function syncCartItem(productId, variantId, newQuantity, variantPrice, variantName) {
+            console.log('syncCartItem called:', { productId, variantId, newQuantity, variantPrice, variantName });
             try {
                 if (newQuantity === 0) {
                     await fetchWithTimeout('/api/cart/remove', {
@@ -564,16 +565,16 @@
                 if (!isActive) {
                     controlsHtml = `<div class="unavailable">Нет в наличии</div>`;
                 } else if (quantity === 0) {
-                    // Используем JSON.stringify для безопасной передачи строки
+                    // Используем JSON.stringify и одинарные кавычки для атрибута onclick
                     const variantNameJson = JSON.stringify(variant.name);
-                    controlsHtml = `<button class="btn-add" onclick="addToCart(${product.id}, ${variant.id}, ${variant.price}, ${variantNameJson})">В корзину</button>`;
+                    controlsHtml = `<button class="btn-add" onclick='addToCart(${product.id}, ${variant.id}, ${variant.price}, ${variantNameJson})'>В корзину</button>`;
                 } else {
                     const variantNameJson = JSON.stringify(variant.name);
                     controlsHtml = `
                         <div class="quantity-control">
-                            <button onclick="updateQuantity(${product.id}, ${variant.id}, ${quantity - 1}, ${variant.price}, ${variantNameJson})">−</button>
+                            <button onclick='updateQuantity(${product.id}, ${variant.id}, ${quantity - 1}, ${variant.price}, ${variantNameJson})'>−</button>
                             <span class="quantity-value">${quantity}</span>
-                            <button onclick="updateQuantity(${product.id}, ${variant.id}, ${quantity + 1}, ${variant.price}, ${variantNameJson})">+</button>
+                            <button onclick='updateQuantity(${product.id}, ${variant.id}, ${quantity + 1}, ${variant.price}, ${variantNameJson})'>+</button>
                         </div>
                     `;
                 }
@@ -613,10 +614,12 @@
 
         // Глобальные функции для вызова из onclick
         window.addToCart = function(productId, variantId, price, variantName) {
+            console.log('addToCart called:', { productId, variantId, price, variantName });
             syncCartItem(productId, variantId, 1, price, variantName);
         };
         window.updateQuantity = function(productId, variantId, newQuantity, price, variantName) {
             if (newQuantity < 0) return;
+            console.log('updateQuantity called:', { productId, variantId, newQuantity, price, variantName });
             syncCartItem(productId, variantId, newQuantity, price, variantName);
         };
 
