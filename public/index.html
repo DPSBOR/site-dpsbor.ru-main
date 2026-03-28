@@ -6,6 +6,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <title>Магазин - Каталог</title>
     <style>
+        /* все стили без изменений, как в последней версии */
         * {
             margin: 0;
             padding: 0;
@@ -18,13 +19,11 @@
             padding: 0 12px 80px 12px;
         }
 
-        /* Центрирование контента на ПК */
         .page-container {
             max-width: 1280px;
             margin: 0 auto;
         }
 
-        /* Верхняя навигация (как в оригинале) */
         .top-nav {
             position: sticky;
             top: 0;
@@ -61,7 +60,6 @@
             color: #1e1e1e;
         }
 
-        /* Кнопки категорий */
         .category-buttons {
             display: flex;
             gap: 12px;
@@ -83,7 +81,6 @@
             background: #218838;
         }
 
-        /* Сетка товаров — адаптивная, карточки компактные */
         .products-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -91,7 +88,6 @@
             margin-top: 8px;
         }
 
-        /* Карточка товара */
         .product-card {
             background: white;
             border-radius: 16px;
@@ -143,7 +139,6 @@
             overflow: hidden;
         }
 
-        /* Блок вариантов */
         .variants {
             margin-top: 4px;
         }
@@ -184,7 +179,7 @@
             padding: 6px 0;
             border-radius: 30px;
             font-size: 12px;
-            font-weight: 700;  /* жирный шрифт */
+            font-weight: 700;
             cursor: pointer;
             transition: background 0.2s;
             width: 100%;
@@ -236,7 +231,6 @@
             padding: 4px 0;
         }
 
-        /* Плавающая корзина */
         .cart-fab {
             position: fixed;
             bottom: 20px;
@@ -274,7 +268,6 @@
             border: 1px solid white;
         }
 
-        /* Увеличенная корзина на мобильных */
         @media (max-width: 640px) {
             .cart-fab {
                 width: 64px;
@@ -288,7 +281,6 @@
             }
         }
 
-        /* Заголовки категорий */
         .category-title {
             font-size: 18px;
             font-weight: 600;
@@ -319,7 +311,6 @@
             cursor: pointer;
         }
 
-        /* Адаптация для десктопа: чуть больше карточки */
         @media (min-width: 640px) {
             .products-grid {
                 grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -352,7 +343,6 @@
 
         <h1>Каталог</h1>
 
-        <!-- Кнопки категорий -->
         <div class="category-buttons">
             <button onclick="document.getElementById('nuts-category').scrollIntoView({behavior: 'smooth'})">Орехи</button>
             <button onclick="document.getElementById('driedfruits-category').scrollIntoView({behavior: 'smooth'})">Сухофрукты</button>
@@ -370,7 +360,6 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // ----- Определение userId (Telegram или временный) -----
         let userId = tg.initDataUnsafe?.user?.id;
         if (!userId) {
             let storedId = localStorage.getItem('temp_user_id');
@@ -384,12 +373,9 @@
 
         let products = [];
         let cart = { items: [] };
-        let isLoading = false;
-
         const CART_STORAGE_KEY = `cart_${userId}`;
         const PRODUCTS_CACHE_KEY = 'cached_products';
 
-        // ----- localStorage helpers -----
         function saveCartToLocalStorage() {
             localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart.items));
         }
@@ -413,7 +399,6 @@
             return false;
         }
 
-        // ----- Запрос с таймаутом -----
         async function fetchWithTimeout(url, options = {}, timeout = 8000) {
             const controller = new AbortController();
             const id = setTimeout(() => controller.abort(), timeout);
@@ -428,7 +413,6 @@
             }
         }
 
-        // ----- Загрузка товаров -----
         async function loadProducts() {
             try {
                 const data = await fetchWithTimeout('/api/products');
@@ -447,7 +431,6 @@
             }
         }
 
-        // ----- Загрузка корзины -----
         async function loadCart() {
             try {
                 const data = await fetchWithTimeout(`/api/cart/${userId}`);
@@ -466,9 +449,7 @@
             document.getElementById('cart-count').textContent = total;
         }
 
-        // ----- Синхронизация элемента корзины -----
         async function syncCartItem(productId, variantId, newQuantity, variantPrice, variantName) {
-            console.log('syncCartItem called:', { productId, variantId, newQuantity, variantPrice, variantName });
             try {
                 if (newQuantity === 0) {
                     await fetchWithTimeout('/api/cart/remove', {
@@ -506,7 +487,24 @@
             }
         }
 
-        // ----- Отрисовка каталога -----
+        // Упрощённые функции, которые получают данные из products по id
+        window.addToCart = function(productId, variantId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            const variant = product.variants.find(v => v.id === variantId);
+            if (!variant) return;
+            syncCartItem(productId, variantId, 1, variant.price, variant.name);
+        };
+
+        window.updateQuantity = function(productId, variantId, newQuantity) {
+            if (newQuantity < 0) return;
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            const variant = product.variants.find(v => v.id === variantId);
+            if (!variant) return;
+            syncCartItem(productId, variantId, newQuantity, variant.price, variant.name);
+        };
+
         function renderProducts() {
             const container = document.getElementById('products-container');
             if (!products.length) {
@@ -514,7 +512,6 @@
                 return;
             }
 
-            // Группировка по категориям
             const categories = {};
             products.forEach(p => {
                 const cat = p.category || 'Другое';
@@ -537,7 +534,6 @@
                     delete categories[cat];
                 }
             }
-            // Остальные категории
             for (let cat in categories) {
                 html += `<div class="category-title">${cat}</div>`;
                 html += `<div class="products-grid">`;
@@ -552,7 +548,6 @@
 
         function renderProductCard(product) {
             const imageUrl = product.image || 'https://via.placeholder.com/300?text=Нет+фото';
-            // Исключаем вариант "Россыпь"
             const variantsToShow = product.variants.filter(v => v.name !== 'Россыпь');
 
             let variantsHtml = '';
@@ -565,16 +560,13 @@
                 if (!isActive) {
                     controlsHtml = `<div class="unavailable">Нет в наличии</div>`;
                 } else if (quantity === 0) {
-                    // Используем JSON.stringify и двойные кавычки с экранированием
-                    const variantNameJson = JSON.stringify(variant.name);
-                    controlsHtml = `<button class="btn-add" onclick="addToCart(${product.id}, ${variant.id}, ${variant.price}, ${variantNameJson})">В корзину</button>`;
+                    controlsHtml = `<button class="btn-add" onclick="addToCart(${product.id}, ${variant.id})">В корзину</button>`;
                 } else {
-                    const variantNameJson = JSON.stringify(variant.name);
                     controlsHtml = `
                         <div class="quantity-control">
-                            <button onclick="updateQuantity(${product.id}, ${variant.id}, ${quantity - 1}, ${variant.price}, ${variantNameJson})">−</button>
+                            <button onclick="updateQuantity(${product.id}, ${variant.id}, ${quantity - 1})">−</button>
                             <span class="quantity-value">${quantity}</span>
-                            <button onclick="updateQuantity(${product.id}, ${variant.id}, ${quantity + 1}, ${variant.price}, ${variantNameJson})">+</button>
+                            <button onclick="updateQuantity(${product.id}, ${variant.id}, ${quantity + 1})">+</button>
                         </div>
                     `;
                 }
@@ -611,17 +603,6 @@
                 return m;
             });
         }
-
-        // Глобальные функции для вызова из onclick
-        window.addToCart = function(productId, variantId, price, variantName) {
-            console.log('addToCart called:', { productId, variantId, price, variantName });
-            syncCartItem(productId, variantId, 1, price, variantName);
-        };
-        window.updateQuantity = function(productId, variantId, newQuantity, price, variantName) {
-            if (newQuantity < 0) return;
-            console.log('updateQuantity called:', { productId, variantId, newQuantity, price, variantName });
-            syncCartItem(productId, variantId, newQuantity, price, variantName);
-        };
 
         async function init() {
             const container = document.getElementById('products-container');
