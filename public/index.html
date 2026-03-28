@@ -6,7 +6,6 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <title>Магазин - Каталог</title>
     <style>
-        /* все стили без изменений, как в последней версии */
         * {
             margin: 0;
             padding: 0;
@@ -19,11 +18,13 @@
             padding: 0 12px 80px 12px;
         }
 
+        /* Центрирование контента на ПК */
         .page-container {
             max-width: 1280px;
             margin: 0 auto;
         }
 
+        /* Верхняя навигация */
         .top-nav {
             position: sticky;
             top: 0;
@@ -60,6 +61,7 @@
             color: #1e1e1e;
         }
 
+        /* Кнопки категорий */
         .category-buttons {
             display: flex;
             gap: 12px;
@@ -81,6 +83,7 @@
             background: #218838;
         }
 
+        /* Сетка товаров */
         .products-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -88,6 +91,7 @@
             margin-top: 8px;
         }
 
+        /* Карточка товара */
         .product-card {
             background: white;
             border-radius: 16px;
@@ -231,6 +235,7 @@
             padding: 4px 0;
         }
 
+        /* Плавающая корзина */
         .cart-fab {
             position: fixed;
             bottom: 20px;
@@ -360,6 +365,7 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
+        // userId
         let userId = tg.initDataUnsafe?.user?.id;
         if (!userId) {
             let storedId = localStorage.getItem('temp_user_id');
@@ -369,7 +375,7 @@
             }
             userId = storedId;
         }
-        console.log('Current userId:', userId);
+        console.log('userId:', userId);
 
         let products = [];
         let cart = { items: [] };
@@ -449,6 +455,29 @@
             document.getElementById('cart-count').textContent = total;
         }
 
+        // Глобальные функции для работы с корзиной
+        window.addToCart = async function(productId, variantId) {
+            // Находим цену и название варианта
+            const product = products.find(p => p.id === productId);
+            const variant = product?.variants.find(v => v.id === variantId);
+            if (!product || !variant) {
+                console.error('Товар или вариант не найден');
+                return;
+            }
+            const price = variant.price;
+            const variantName = variant.name;
+            await syncCartItem(productId, variantId, 1, price, variantName);
+        };
+
+        window.updateQuantity = async function(productId, variantId, newQuantity) {
+            if (newQuantity < 0) return;
+            const product = products.find(p => p.id === productId);
+            const variant = product?.variants.find(v => v.id === variantId);
+            const price = variant?.price || 0;
+            const variantName = variant?.name || '';
+            await syncCartItem(productId, variantId, newQuantity, price, variantName);
+        };
+
         async function syncCartItem(productId, variantId, newQuantity, variantPrice, variantName) {
             try {
                 if (newQuantity === 0) {
@@ -486,24 +515,6 @@
                 updateCartCount();
             }
         }
-
-        // Упрощённые функции, которые получают данные из products по id
-        window.addToCart = function(productId, variantId) {
-            const product = products.find(p => p.id === productId);
-            if (!product) return;
-            const variant = product.variants.find(v => v.id === variantId);
-            if (!variant) return;
-            syncCartItem(productId, variantId, 1, variant.price, variant.name);
-        };
-
-        window.updateQuantity = function(productId, variantId, newQuantity) {
-            if (newQuantity < 0) return;
-            const product = products.find(p => p.id === productId);
-            if (!product) return;
-            const variant = product.variants.find(v => v.id === variantId);
-            if (!variant) return;
-            syncCartItem(productId, variantId, newQuantity, variant.price, variant.name);
-        };
 
         function renderProducts() {
             const container = document.getElementById('products-container');
