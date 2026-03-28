@@ -55,6 +55,28 @@
             color: #1e1e1e;
         }
 
+        /* Кнопки категорий */
+        .category-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .category-buttons button {
+            flex: 1;
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 12px;
+            border-radius: 30px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .category-buttons button:hover {
+            background: #218838;
+        }
+
         /* Сетка товаров — адаптивная, карточки компактные */
         .products-grid {
             display: grid;
@@ -127,15 +149,6 @@
         .variant-item:first-child {
             border-top: none;
             padding-top: 0;
-        }
-
-        .variant-pack {
-            font-size: 10px;
-            font-weight: 600;
-            color: #6c757d;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            margin-bottom: 2px;
         }
 
         .variant-weight {
@@ -286,7 +299,7 @@
             cursor: pointer;
         }
 
-        /* Адаптация для десктопа: чуть больше карточки, но не слишком */
+        /* Адаптация для десктопа */
         @media (min-width: 640px) {
             .products-grid {
                 grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -317,6 +330,12 @@
     </div>
 
     <h1>Каталог</h1>
+
+    <!-- Кнопки категорий -->
+    <div class="category-buttons">
+        <button onclick="document.getElementById('nuts-category').scrollIntoView({behavior: 'smooth'})">Орехи</button>
+        <button onclick="document.getElementById('driedfruits-category').scrollIntoView({behavior: 'smooth'})">Сухофрукты</button>
+    </div>
 
     <div id="products-container"></div>
 
@@ -485,7 +504,8 @@
 
             for (let cat of order) {
                 if (categories[cat]) {
-                    html += `<div class="category-title">${cat}</div>`;
+                    const catId = cat === 'Орехи' ? 'nuts-category' : (cat === 'Сухофрукты' ? 'driedfruits-category' : cat);
+                    html += `<div id="${catId}" class="category-title">${cat}</div>`;
                     html += `<div class="products-grid">`;
                     categories[cat].forEach(product => {
                         html += renderProductCard(product);
@@ -494,7 +514,7 @@
                     delete categories[cat];
                 }
             }
-            // Остальные категории
+            // Остальные категории (без id для скролла, но можно добавить при необходимости)
             for (let cat in categories) {
                 html += `<div class="category-title">${cat}</div>`;
                 html += `<div class="products-grid">`;
@@ -535,7 +555,6 @@
 
                 variantsHtml += `
                     <div class="variant-item">
-                        <div class="variant-pack">Упаковка</div>
                         <div class="variant-weight">${escapeHtml(variant.name)}</div>
                         <div class="variant-price">${variant.price} руб.</div>
                         <div class="variant-controls">${controlsHtml}</div>
