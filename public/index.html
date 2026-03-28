@@ -18,13 +18,12 @@
             padding: 0 12px 80px 12px;
         }
 
-        /* Центрирование контента на ПК */
         .page-container {
             max-width: 1280px;
             margin: 0 auto;
         }
 
-        /* Верхняя навигация */
+        /* Верхняя навигация (как в оригинале) */
         .top-nav {
             position: sticky;
             top: 0;
@@ -61,7 +60,7 @@
             color: #1e1e1e;
         }
 
-        /* Кнопки категорий */
+        /* Кнопки категорий (зелёные) */
         .category-buttons {
             display: flex;
             gap: 12px;
@@ -83,7 +82,7 @@
             background: #218838;
         }
 
-        /* Сетка товаров */
+        /* Сетка товаров — как в Ozon */
         .products-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -91,7 +90,6 @@
             margin-top: 8px;
         }
 
-        /* Карточка товара */
         .product-card {
             background: white;
             border-radius: 16px;
@@ -235,7 +233,7 @@
             padding: 4px 0;
         }
 
-        /* Плавающая корзина */
+        /* Плавающая корзина (как в оригинале, но увеличенная на мобильных) */
         .cart-fab {
             position: fixed;
             bottom: 20px;
@@ -365,7 +363,7 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // userId
+        // ----- userId (как в исходном файле) -----
         let userId = tg.initDataUnsafe?.user?.id;
         if (!userId) {
             let storedId = localStorage.getItem('temp_user_id');
@@ -455,30 +453,45 @@
             document.getElementById('cart-count').textContent = total;
         }
 
-        // Глобальные функции для работы с корзиной
-        window.addToCart = async function(productId, variantId) {
-            // Находим цену и название варианта
-            const product = products.find(p => p.id === productId);
-            const variant = product?.variants.find(v => v.id === variantId);
-            if (!product || !variant) {
-                console.error('Товар или вариант не найден');
-                return;
-            }
-            const price = variant.price;
-            const variantName = variant.name;
-            await syncCartItem(productId, variantId, 1, price, variantName);
-        };
-
-        window.updateQuantity = async function(productId, variantId, newQuantity) {
-            if (newQuantity < 0) return;
+        // ----- Функции работы с корзиной (скопированы из исходного файла и адаптированы) -----
+        async function addToCart(productId, variantId) {
+            console.log('addToCart called', productId, variantId);
+            // Находим цену и название варианта для локального fallback
             const product = products.find(p => p.id === productId);
             const variant = product?.variants.find(v => v.id === variantId);
             const price = variant?.price || 0;
             const variantName = variant?.name || '';
-            await syncCartItem(productId, variantId, newQuantity, price, variantName);
-        };
 
-        async function syncCartItem(productId, variantId, newQuantity, variantPrice, variantName) {
+            try {
+                await fetchWithTimeout('/api/cart/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, productId, variantId, quantity: 1 })
+                });
+                await loadCart();
+                renderProducts();
+            } catch (err) {
+                console.warn('Ошибка добавления, сохраняем локально:', err);
+                const existing = cart.items.find(i => i.productId === productId && i.variantId === variantId);
+                if (existing) {
+                    existing.quantity++;
+                } else {
+                    cart.items.push({ productId, variantId, quantity: 1, priceAtTime: price, variantName: variantName });
+                }
+                saveCartToLocalStorage();
+                renderProducts();
+                updateCartCount();
+            }
+        }
+
+        async function updateQuantity(productId, variantId, newQuantity) {
+            if (newQuantity < 0) return;
+            console.log('updateQuantity called', productId, variantId, newQuantity);
+            const product = products.find(p => p.id === productId);
+            const variant = product?.variants.find(v => v.id === variantId);
+            const price = variant?.price || 0;
+            const variantName = variant?.name || '';
+
             try {
                 if (newQuantity === 0) {
                     await fetchWithTimeout('/api/cart/remove', {
@@ -496,7 +509,7 @@
                 await loadCart();
                 renderProducts();
             } catch (err) {
-                console.warn('Синхронизация не удалась, работаем локально:', err);
+                console.warn('Ошибка обновления, работаем локально:', err);
                 const existing = cart.items.find(i => i.productId === productId && i.variantId === variantId);
                 if (existing) {
                     if (newQuantity === 0) {
@@ -505,10 +518,7 @@
                         existing.quantity = newQuantity;
                     }
                 } else if (newQuantity > 0) {
-                    cart.items.push({
-                        productId, variantId, quantity: newQuantity,
-                        priceAtTime: variantPrice, variantName: variantName
-                    });
+                    cart.items.push({ productId, variantId, quantity: newQuantity, priceAtTime: price, variantName: variantName });
                 }
                 saveCartToLocalStorage();
                 renderProducts();
@@ -516,6 +526,7 @@
             }
         }
 
+        // ----- Отрисовка -----
         function renderProducts() {
             const container = document.getElementById('products-container');
             if (!products.length) {
