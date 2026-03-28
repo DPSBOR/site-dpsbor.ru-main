@@ -6,6 +6,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <title>Магазин - Каталог</title>
     <style>
+        /* (все стили без изменений, только добавим жирность для кнопки) */
         * {
             margin: 0;
             padding: 0;
@@ -18,13 +19,11 @@
             padding: 0 12px 80px 12px;
         }
 
-        /* Центрирование контента на ПК */
         .page-container {
             max-width: 1280px;
             margin: 0 auto;
         }
 
-        /* Верхняя навигация (как в оригинале) */
         .top-nav {
             position: sticky;
             top: 0;
@@ -61,7 +60,6 @@
             color: #1e1e1e;
         }
 
-        /* Кнопки категорий */
         .category-buttons {
             display: flex;
             gap: 12px;
@@ -83,7 +81,6 @@
             background: #218838;
         }
 
-        /* Сетка товаров — адаптивная, карточки компактные */
         .products-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -91,7 +88,6 @@
             margin-top: 8px;
         }
 
-        /* Карточка товара */
         .product-card {
             background: white;
             border-radius: 16px;
@@ -143,7 +139,6 @@
             overflow: hidden;
         }
 
-        /* Блок вариантов */
         .variants {
             margin-top: 4px;
         }
@@ -184,7 +179,7 @@
             padding: 6px 0;
             border-radius: 30px;
             font-size: 12px;
-            font-weight: 500;
+            font-weight: 700;  /* жирный шрифт */
             cursor: pointer;
             transition: background 0.2s;
             width: 100%;
@@ -236,7 +231,6 @@
             padding: 4px 0;
         }
 
-        /* Плавающая корзина */
         .cart-fab {
             position: fixed;
             bottom: 20px;
@@ -274,7 +268,6 @@
             border: 1px solid white;
         }
 
-        /* Увеличенная корзина на мобильных */
         @media (max-width: 640px) {
             .cart-fab {
                 width: 64px;
@@ -288,7 +281,6 @@
             }
         }
 
-        /* Заголовки категорий */
         .category-title {
             font-size: 18px;
             font-weight: 600;
@@ -319,7 +311,6 @@
             cursor: pointer;
         }
 
-        /* Адаптация для десктопа: чуть больше карточки */
         @media (min-width: 640px) {
             .products-grid {
                 grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -352,7 +343,6 @@
 
         <h1>Каталог</h1>
 
-        <!-- Кнопки категорий -->
         <div class="category-buttons">
             <button onclick="document.getElementById('nuts-category').scrollIntoView({behavior: 'smooth'})">Орехи</button>
             <button onclick="document.getElementById('driedfruits-category').scrollIntoView({behavior: 'smooth'})">Сухофрукты</button>
@@ -370,7 +360,6 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // ----- Определение userId (Telegram или временный) -----
         let userId = tg.initDataUnsafe?.user?.id;
         if (!userId) {
             let storedId = localStorage.getItem('temp_user_id');
@@ -384,12 +373,9 @@
 
         let products = [];
         let cart = { items: [] };
-        let isLoading = false;
-
         const CART_STORAGE_KEY = `cart_${userId}`;
         const PRODUCTS_CACHE_KEY = 'cached_products';
 
-        // ----- localStorage helpers -----
         function saveCartToLocalStorage() {
             localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart.items));
         }
@@ -413,7 +399,6 @@
             return false;
         }
 
-        // ----- Запрос с таймаутом -----
         async function fetchWithTimeout(url, options = {}, timeout = 8000) {
             const controller = new AbortController();
             const id = setTimeout(() => controller.abort(), timeout);
@@ -428,7 +413,6 @@
             }
         }
 
-        // ----- Загрузка товаров -----
         async function loadProducts() {
             try {
                 const data = await fetchWithTimeout('/api/products');
@@ -447,7 +431,6 @@
             }
         }
 
-        // ----- Загрузка корзины -----
         async function loadCart() {
             try {
                 const data = await fetchWithTimeout(`/api/cart/${userId}`);
@@ -466,9 +449,7 @@
             document.getElementById('cart-count').textContent = total;
         }
 
-        // ----- Синхронизация элемента корзины -----
         async function syncCartItem(productId, variantId, newQuantity, variantPrice, variantName) {
-            console.log('syncCartItem called:', { productId, variantId, newQuantity, variantPrice, variantName });
             try {
                 if (newQuantity === 0) {
                     await fetchWithTimeout('/api/cart/remove', {
@@ -506,7 +487,21 @@
             }
         }
 
-        // ----- Отрисовка каталога -----
+        // Функции для обработчиков
+        function addToCart(productId, variantId, price, variantName) {
+            syncCartItem(productId, variantId, 1, price, variantName);
+        }
+
+        function updateQuantity(productId, variantId, newQuantity, price, variantName) {
+            if (newQuantity < 0) return;
+            syncCartItem(productId, variantId, newQuantity, price, variantName);
+        }
+
+        // Глобально делаем их доступными через window (на случай, если понадобятся в onclick)
+        window.addToCart = addToCart;
+        window.updateQuantity = updateQuantity;
+
+        // Создание карточки через DOM-элементы (без строковых onclick)
         function renderProducts() {
             const container = document.getElementById('products-container');
             if (!products.length) {
@@ -514,7 +509,6 @@
                 return;
             }
 
-            // Группировка по категориям
             const categories = {};
             products.forEach(p => {
                 const cat = p.category || 'Другое';
@@ -522,106 +516,135 @@
                 categories[cat].push(p);
             });
 
-            let html = '';
+            container.innerHTML = ''; // очищаем
+
             const order = ['Орехи', 'Сухофрукты'];
 
             for (let cat of order) {
                 if (categories[cat]) {
                     const catId = cat === 'Орехи' ? 'nuts-category' : (cat === 'Сухофрукты' ? 'driedfruits-category' : cat);
-                    html += `<div id="${catId}" class="category-title">${cat}</div>`;
-                    html += `<div class="products-grid">`;
+                    const titleDiv = document.createElement('div');
+                    titleDiv.id = catId;
+                    titleDiv.className = 'category-title';
+                    titleDiv.textContent = cat;
+                    container.appendChild(titleDiv);
+
+                    const gridDiv = document.createElement('div');
+                    gridDiv.className = 'products-grid';
                     categories[cat].forEach(product => {
-                        html += renderProductCard(product);
+                        gridDiv.appendChild(createProductCard(product));
                     });
-                    html += `</div>`;
+                    container.appendChild(gridDiv);
                     delete categories[cat];
                 }
             }
-            // Остальные категории
             for (let cat in categories) {
-                html += `<div class="category-title">${cat}</div>`;
-                html += `<div class="products-grid">`;
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'category-title';
+                titleDiv.textContent = cat;
+                container.appendChild(titleDiv);
+                const gridDiv = document.createElement('div');
+                gridDiv.className = 'products-grid';
                 categories[cat].forEach(product => {
-                    html += renderProductCard(product);
+                    gridDiv.appendChild(createProductCard(product));
                 });
-                html += `</div>`;
+                container.appendChild(gridDiv);
             }
-
-            container.innerHTML = html;
         }
 
-        function renderProductCard(product) {
-            const imageUrl = product.image || 'https://via.placeholder.com/300?text=Нет+фото';
-            // Исключаем вариант "Россыпь"
-            const variantsToShow = product.variants.filter(v => v.name !== 'Россыпь');
+        function createProductCard(product) {
+            const card = document.createElement('div');
+            card.className = 'product-card';
 
-            let variantsHtml = '';
+            const img = document.createElement('img');
+            img.className = 'product-image';
+            img.src = product.image || 'https://via.placeholder.com/300?text=Нет+фото';
+            img.alt = product.name;
+            img.loading = 'lazy';
+            card.appendChild(img);
+
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'product-info';
+
+            const title = document.createElement('div');
+            title.className = 'product-title';
+            title.textContent = product.name;
+            infoDiv.appendChild(title);
+
+            const desc = document.createElement('div');
+            desc.className = 'product-description';
+            desc.textContent = product.description;
+            infoDiv.appendChild(desc);
+
+            const variantsDiv = document.createElement('div');
+            variantsDiv.className = 'variants';
+
+            const variantsToShow = product.variants.filter(v => v.name !== 'Россыпь');
             variantsToShow.forEach(variant => {
+                const variantItem = document.createElement('div');
+                variantItem.className = 'variant-item';
+
+                const weight = document.createElement('div');
+                weight.className = 'variant-weight';
+                weight.textContent = variant.name;
+                variantItem.appendChild(weight);
+
+                const price = document.createElement('div');
+                price.className = 'variant-price';
+                price.textContent = `${variant.price} руб.`;
+                variantItem.appendChild(price);
+
+                const controls = document.createElement('div');
+                controls.className = 'variant-controls';
+
                 const cartItem = cart.items.find(i => i.productId === product.id && i.variantId === variant.id);
                 const quantity = cartItem ? cartItem.quantity : 0;
                 const isActive = variant.is_active !== false;
 
-                let controlsHtml = '';
                 if (!isActive) {
-                    controlsHtml = `<div class="unavailable">Нет в наличии</div>`;
+                    const unavailable = document.createElement('div');
+                    unavailable.className = 'unavailable';
+                    unavailable.textContent = 'Нет в наличии';
+                    controls.appendChild(unavailable);
                 } else if (quantity === 0) {
-                    // Используем JSON.stringify и одинарные кавычки для атрибута onclick
-                    const variantNameJson = JSON.stringify(variant.name);
-                    controlsHtml = `<button class="btn-add" onclick='addToCart(${product.id}, ${variant.id}, ${variant.price}, ${variantNameJson})'>В корзину</button>`;
+                    const button = document.createElement('button');
+                    button.className = 'btn-add';
+                    button.textContent = 'В корзину';
+                    button.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        addToCart(product.id, variant.id, variant.price, variant.name);
+                    });
+                    controls.appendChild(button);
                 } else {
-                    const variantNameJson = JSON.stringify(variant.name);
-                    controlsHtml = `
-                        <div class="quantity-control">
-                            <button onclick='updateQuantity(${product.id}, ${variant.id}, ${quantity - 1}, ${variant.price}, ${variantNameJson})'>−</button>
-                            <span class="quantity-value">${quantity}</span>
-                            <button onclick='updateQuantity(${product.id}, ${variant.id}, ${quantity + 1}, ${variant.price}, ${variantNameJson})'>+</button>
-                        </div>
-                    `;
+                    const qtyControl = document.createElement('div');
+                    qtyControl.className = 'quantity-control';
+                    const minusBtn = document.createElement('button');
+                    minusBtn.textContent = '−';
+                    minusBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        updateQuantity(product.id, variant.id, quantity - 1, variant.price, variant.name);
+                    });
+                    const qtySpan = document.createElement('span');
+                    qtySpan.className = 'quantity-value';
+                    qtySpan.textContent = quantity;
+                    const plusBtn = document.createElement('button');
+                    plusBtn.textContent = '+';
+                    plusBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        updateQuantity(product.id, variant.id, quantity + 1, variant.price, variant.name);
+                    });
+                    qtyControl.appendChild(minusBtn);
+                    qtyControl.appendChild(qtySpan);
+                    qtyControl.appendChild(plusBtn);
+                    controls.appendChild(qtyControl);
                 }
-
-                variantsHtml += `
-                    <div class="variant-item">
-                        <div class="variant-weight">${escapeHtml(variant.name)}</div>
-                        <div class="variant-price">${variant.price} руб.</div>
-                        <div class="variant-controls">${controlsHtml}</div>
-                    </div>
-                `;
+                variantItem.appendChild(controls);
+                variantsDiv.appendChild(variantItem);
             });
-
-            return `
-                <div class="product-card">
-                    <img class="product-image" src="${escapeHtml(imageUrl)}" alt="${escapeHtml(product.name)}" loading="lazy">
-                    <div class="product-info">
-                        <div class="product-title">${escapeHtml(product.name)}</div>
-                        <div class="product-description">${escapeHtml(product.description)}</div>
-                        <div class="variants">
-                            ${variantsHtml}
-                        </div>
-                    </div>
-                </div>
-            `;
+            infoDiv.appendChild(variantsDiv);
+            card.appendChild(infoDiv);
+            return card;
         }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
-        }
-
-        // Глобальные функции для вызова из onclick
-        window.addToCart = function(productId, variantId, price, variantName) {
-            console.log('addToCart called:', { productId, variantId, price, variantName });
-            syncCartItem(productId, variantId, 1, price, variantName);
-        };
-        window.updateQuantity = function(productId, variantId, newQuantity, price, variantName) {
-            if (newQuantity < 0) return;
-            console.log('updateQuantity called:', { productId, variantId, newQuantity, price, variantName });
-            syncCartItem(productId, variantId, newQuantity, price, variantName);
-        };
 
         async function init() {
             const container = document.getElementById('products-container');
