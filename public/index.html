@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <title>Магазин - Каталог</title>
     <style>
@@ -14,11 +14,11 @@
 
         body {
             font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            background: #f5f5f5;
+            background: #f8f9fa;
             padding: 0 12px 80px 12px;
         }
 
-        /* Верхняя навигация */
+        /* Верхняя навигация (как в оригинале) */
         .top-nav {
             position: sticky;
             top: 0;
@@ -28,18 +28,19 @@
             background: #fff;
             padding: 10px;
             margin-bottom: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
         }
         .top-nav button {
             background: transparent;
             color: #28a745;
             border: 1px solid #28a745;
             padding: 8px 15px;
-            border-radius: 5px;
+            border-radius: 30px;
             cursor: pointer;
             font-size: 14px;
             width: 45%;
+            font-weight: 500;
             transition: all 0.2s;
         }
         .top-nav button:hover {
@@ -48,33 +49,34 @@
         }
 
         h1 {
-            margin: 10px 0;
+            margin: 16px 0 8px;
             font-size: 24px;
             font-weight: 600;
             color: #1e1e1e;
         }
 
-        /* Сетка: 2-3 карточки в строку */
+        /* Сетка товаров — адаптивная, карточки компактные */
         .products-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             gap: 12px;
-            margin-top: 12px;
+            margin-top: 8px;
         }
 
         /* Карточка товара */
         .product-card {
             background: white;
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             transition: transform 0.2s, box-shadow 0.2s;
             display: flex;
             flex-direction: column;
+            height: 100%;
         }
         .product-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.08);
         }
 
         .product-image {
@@ -85,7 +87,7 @@
         }
 
         .product-info {
-            padding: 8px;
+            padding: 10px 10px 12px;
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -96,12 +98,16 @@
             font-weight: 600;
             margin-bottom: 4px;
             line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .product-description {
             font-size: 11px;
-            color: #6b7280;
-            margin-bottom: 8px;
+            color: #6c757d;
+            margin-bottom: 10px;
             line-height: 1.3;
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -111,12 +117,12 @@
 
         /* Блок вариантов */
         .variants {
-            margin-top: 6px;
+            margin-top: 4px;
         }
 
         .variant-item {
             border-top: 1px solid #edf2f7;
-            padding: 8px 0 4px 0;
+            padding: 8px 0 6px;
         }
         .variant-item:first-child {
             border-top: none;
@@ -125,8 +131,8 @@
 
         .variant-pack {
             font-size: 10px;
-            font-weight: 500;
-            color: #4a5568;
+            font-weight: 600;
+            color: #6c757d;
             text-transform: uppercase;
             letter-spacing: 0.3px;
             margin-bottom: 2px;
@@ -134,19 +140,18 @@
 
         .variant-weight {
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 500;
             color: #1e1e1e;
             margin-bottom: 4px;
         }
 
         .variant-price {
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 700;
             color: #28a745;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
         }
 
-        /* Кнопки управления количеством */
         .variant-controls {
             display: flex;
             align-items: center;
@@ -157,13 +162,13 @@
             background: #28a745;
             color: white;
             border: none;
-            padding: 6px 10px;
-            border-radius: 20px;
+            padding: 6px 0;
+            border-radius: 30px;
             font-size: 12px;
             font-weight: 500;
             cursor: pointer;
             transition: background 0.2s;
-            flex: 1;
+            width: 100%;
             text-align: center;
         }
         .btn-add:hover {
@@ -173,10 +178,11 @@
         .quantity-control {
             display: flex;
             align-items: center;
-            gap: 6px;
+            justify-content: space-between;
             background: #f1f5f9;
-            border-radius: 20px;
+            border-radius: 30px;
             padding: 2px 6px;
+            width: 100%;
         }
         .quantity-control button {
             background: none;
@@ -185,8 +191,8 @@
             font-weight: 600;
             color: #28a745;
             cursor: pointer;
-            width: 24px;
-            height: 24px;
+            width: 26px;
+            height: 26px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -198,9 +204,9 @@
         }
         .quantity-value {
             font-weight: 600;
+            font-size: 13px;
             min-width: 24px;
             text-align: center;
-            font-size: 13px;
         }
 
         .unavailable {
@@ -211,7 +217,7 @@
             padding: 4px 0;
         }
 
-        /* Плавающая кнопка корзины */
+        /* Плавающая корзина */
         .cart-fab {
             position: fixed;
             bottom: 20px;
@@ -226,18 +232,18 @@
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-size: 26px;
             z-index: 1000;
             transition: transform 0.1s;
         }
         .cart-fab:active {
-            transform: scale(0.96);
+            transform: scale(0.94);
         }
         .cart-fab .cart-count {
             position: absolute;
-            top: 0;
-            right: 0;
+            top: -2px;
+            right: -2px;
             background: red;
             color: white;
             border-radius: 50%;
@@ -246,36 +252,61 @@
             font-weight: bold;
             min-width: 18px;
             text-align: center;
+            border: 1px solid white;
         }
 
-        .loading {
+        /* Заголовки категорий */
+        .category-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 20px 0 8px;
+            padding-bottom: 4px;
+            border-bottom: 2px solid #28a745;
+            display: inline-block;
+        }
+
+        .loading, .error-message {
             text-align: center;
             padding: 40px;
-            color: #6b7280;
-            font-size: 14px;
+            color: #6c757d;
         }
         .error-message {
             background: #fee2e2;
             color: #b91c1c;
-            padding: 12px;
-            border-radius: 12px;
-            text-align: center;
+            border-radius: 16px;
             margin: 20px;
-            font-size: 14px;
         }
         .retry-button {
             background: #28a745;
             color: white;
             border: none;
-            padding: 6px 12px;
-            border-radius: 8px;
-            margin-top: 8px;
+            padding: 8px 16px;
+            border-radius: 30px;
+            margin-top: 10px;
             cursor: pointer;
         }
-        h2 {
-            margin: 20px 0 8px 0;
-            font-size: 18px;
-            font-weight: 600;
+
+        /* Адаптация для десктопа: чуть больше карточки, но не слишком */
+        @media (min-width: 640px) {
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+                gap: 16px;
+            }
+            .product-title {
+                font-size: 15px;
+            }
+            .variant-weight {
+                font-size: 14px;
+            }
+            .variant-price {
+                font-size: 16px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
         }
     </style>
 </head>
@@ -287,7 +318,7 @@
 
     <h1>Каталог</h1>
 
-    <div id="products-container" class="products-grid"></div>
+    <div id="products-container"></div>
 
     <div class="cart-fab" onclick="location.href='cart.html'">
         🛒
@@ -298,6 +329,7 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
+        // ----- Определение userId (Telegram или временный) -----
         let userId = tg.initDataUnsafe?.user?.id;
         if (!userId) {
             let storedId = localStorage.getItem('temp_user_id');
@@ -311,37 +343,36 @@
 
         let products = [];
         let cart = { items: [] };
+        let isLoading = false;
+
         const CART_STORAGE_KEY = `cart_${userId}`;
         const PRODUCTS_CACHE_KEY = 'cached_products';
 
+        // ----- localStorage helpers -----
         function saveCartToLocalStorage() {
             localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart.items));
         }
-
         function loadCartFromLocalStorage() {
             const stored = localStorage.getItem(CART_STORAGE_KEY);
             if (stored) {
-                try {
-                    cart.items = JSON.parse(stored);
-                } catch (e) {}
+                try { cart.items = JSON.parse(stored); } catch(e) {}
             }
         }
-
         function cacheProducts(data) {
             localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(data));
         }
-
         function loadProductsFromCache() {
             const stored = localStorage.getItem(PRODUCTS_CACHE_KEY);
             if (stored) {
                 try {
                     products = JSON.parse(stored);
                     return true;
-                } catch (e) {}
+                } catch(e) {}
             }
             return false;
         }
 
+        // ----- Запрос с таймаутом -----
         async function fetchWithTimeout(url, options = {}, timeout = 8000) {
             const controller = new AbortController();
             const id = setTimeout(() => controller.abort(), timeout);
@@ -356,6 +387,7 @@
             }
         }
 
+        // ----- Загрузка товаров -----
         async function loadProducts() {
             try {
                 const data = await fetchWithTimeout('/api/products');
@@ -374,6 +406,7 @@
             }
         }
 
+        // ----- Загрузка корзины -----
         async function loadCart() {
             try {
                 const data = await fetchWithTimeout(`/api/cart/${userId}`);
@@ -392,6 +425,7 @@
             document.getElementById('cart-count').textContent = total;
         }
 
+        // ----- Синхронизация элемента корзины -----
         async function syncCartItem(productId, variantId, newQuantity, variantPrice, variantName) {
             try {
                 if (newQuantity === 0) {
@@ -420,11 +454,8 @@
                     }
                 } else if (newQuantity > 0) {
                     cart.items.push({
-                        productId,
-                        variantId,
-                        quantity: newQuantity,
-                        priceAtTime: variantPrice,
-                        variantName: variantName
+                        productId, variantId, quantity: newQuantity,
+                        priceAtTime: variantPrice, variantName: variantName
                     });
                 }
                 saveCartToLocalStorage();
@@ -433,6 +464,7 @@
             }
         }
 
+        // ----- Отрисовка каталога -----
         function renderProducts() {
             const container = document.getElementById('products-container');
             if (!products.length) {
@@ -440,6 +472,7 @@
                 return;
             }
 
+            // Группировка по категориям
             const categories = {};
             products.forEach(p => {
                 const cat = p.category || 'Другое';
@@ -452,7 +485,7 @@
 
             for (let cat of order) {
                 if (categories[cat]) {
-                    html += `<h2>${cat}</h2>`;
+                    html += `<div class="category-title">${cat}</div>`;
                     html += `<div class="products-grid">`;
                     categories[cat].forEach(product => {
                         html += renderProductCard(product);
@@ -461,8 +494,9 @@
                     delete categories[cat];
                 }
             }
+            // Остальные категории
             for (let cat in categories) {
-                html += `<h2>${cat}</h2>`;
+                html += `<div class="category-title">${cat}</div>`;
                 html += `<div class="products-grid">`;
                 categories[cat].forEach(product => {
                     html += renderProductCard(product);
@@ -474,7 +508,8 @@
         }
 
         function renderProductCard(product) {
-            const imageUrl = product.image || 'https://via.placeholder.com/200?text=Нет+фото';
+            const imageUrl = product.image || 'https://via.placeholder.com/300?text=Нет+фото';
+            // Исключаем вариант "Россыпь", если нужно
             const variantsToShow = product.variants.filter(v => v.name !== 'Россыпь');
 
             let variantsHtml = '';
@@ -510,7 +545,7 @@
 
             return `
                 <div class="product-card">
-                    <img class="product-image" src="${escapeHtml(imageUrl)}" alt="${escapeHtml(product.name)}">
+                    <img class="product-image" src="${escapeHtml(imageUrl)}" alt="${escapeHtml(product.name)}" loading="lazy">
                     <div class="product-info">
                         <div class="product-title">${escapeHtml(product.name)}</div>
                         <div class="product-description">${escapeHtml(product.description)}</div>
@@ -532,10 +567,10 @@
             });
         }
 
+        // Глобальные функции для вызова из onclick
         window.addToCart = function(productId, variantId, price, variantName) {
             syncCartItem(productId, variantId, 1, price, variantName);
         };
-
         window.updateQuantity = function(productId, variantId, newQuantity, price, variantName) {
             if (newQuantity < 0) return;
             syncCartItem(productId, variantId, newQuantity, price, variantName);
@@ -549,7 +584,7 @@
                 await loadCart();
                 renderProducts();
             } catch (err) {
-                console.error('Критическая ошибка:', err);
+                console.error(err);
                 container.innerHTML = `
                     <div class="error-message">
                         Не удалось загрузить каталог.<br>
