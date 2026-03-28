@@ -19,7 +19,7 @@
             padding: 0 12px 80px 12px;
         }
 
-        /* Верхняя навигация (как в оригинале) */
+        /* Верхняя навигация */
         .top-nav {
             position: sticky;
             top: 0;
@@ -48,7 +48,6 @@
             color: white;
         }
 
-        /* Заголовок */
         h1 {
             margin: 10px 0;
             font-size: 24px;
@@ -56,11 +55,11 @@
             color: #1e1e1e;
         }
 
-        /* Сетка товаров (как в Ozon) */
+        /* Сетка товаров — компактная, 2–3 карточки в строку */
         .products-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
             margin-top: 12px;
         }
 
@@ -87,23 +86,23 @@
         }
 
         .product-info {
-            padding: 12px;
+            padding: 10px;
             flex: 1;
             display: flex;
             flex-direction: column;
         }
 
         .product-title {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             line-height: 1.3;
         }
 
         .product-description {
-            font-size: 13px;
+            font-size: 11px;
             color: #6b7280;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             line-height: 1.4;
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -113,12 +112,12 @@
 
         /* Блок вариантов */
         .variants {
-            margin-top: 8px;
+            margin-top: 6px;
         }
 
         .variant-item {
             border-top: 1px solid #edf2f7;
-            padding: 12px 0 8px 0;
+            padding: 10px 0 6px 0;
         }
         .variant-item:first-child {
             border-top: none;
@@ -126,7 +125,7 @@
         }
 
         .variant-pack {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 500;
             color: #4a5568;
             text-transform: uppercase;
@@ -135,33 +134,33 @@
         }
 
         .variant-weight {
-            font-size: 15px;
+            font-size: 13px;
             font-weight: 600;
             color: #1e1e1e;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
         .variant-price {
-            font-size: 18px;
+            font-size: 15px;
             font-weight: 700;
             color: #28a745;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         /* Кнопки управления количеством */
         .variant-controls {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .btn-add {
             background: #28a745;
             color: white;
             border: none;
-            padding: 8px 12px;
-            border-radius: 40px;
-            font-size: 14px;
+            padding: 6px 10px;
+            border-radius: 30px;
+            font-size: 12px;
             font-weight: 500;
             cursor: pointer;
             transition: background 0.2s;
@@ -175,20 +174,20 @@
         .quantity-control {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             background: #f1f5f9;
-            border-radius: 40px;
-            padding: 4px 8px;
+            border-radius: 30px;
+            padding: 4px 6px;
         }
         .quantity-control button {
             background: none;
             border: none;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 600;
             color: #28a745;
             cursor: pointer;
-            width: 28px;
-            height: 28px;
+            width: 24px;
+            height: 24px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -200,20 +199,20 @@
         }
         .quantity-value {
             font-weight: 600;
-            min-width: 28px;
+            min-width: 24px;
             text-align: center;
+            font-size: 13px;
         }
 
-        /* Кнопка "Нет в наличии" */
         .unavailable {
             color: #9ca3af;
-            font-size: 13px;
+            font-size: 11px;
             font-style: italic;
             text-align: center;
-            padding: 6px 0;
+            padding: 4px 0;
         }
 
-        /* Плавающая кнопка корзины (как раньше) */
+        /* Плавающая кнопка корзины */
         .cart-fab {
             position: fixed;
             bottom: 20px;
@@ -222,14 +221,14 @@
             color: #28a745;
             border: 2px solid #28a745;
             border-radius: 50%;
-            width: 60px;
-            height: 60px;
+            width: 56px;
+            height: 56px;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            font-size: 28px;
+            font-size: 26px;
             z-index: 1000;
             transition: transform 0.1s;
         }
@@ -238,24 +237,23 @@
         }
         .cart-fab .cart-count {
             position: absolute;
-            top: 0;
-            right: 0;
+            top: -2px;
+            right: -2px;
             background: red;
             color: white;
             border-radius: 50%;
             padding: 2px 6px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
             min-width: 20px;
             text-align: center;
         }
 
-        /* Загрузка, ошибки */
         .loading {
             text-align: center;
             padding: 40px;
             color: #6b7280;
-            font-size: 16px;
+            font-size: 14px;
         }
         .error-message {
             background: #fee2e2;
@@ -295,7 +293,6 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // ------ Определение userId (Telegram или временный) ------
         let userId = tg.initDataUnsafe?.user?.id;
         if (!userId) {
             let storedId = localStorage.getItem('temp_user_id');
@@ -307,15 +304,11 @@
         }
         console.log('Current userId:', userId);
 
-        // ------ Глобальные переменные ------
         let products = [];
         let cart = { items: [] };
-        let isLoading = false;
-
         const CART_STORAGE_KEY = `cart_${userId}`;
         const PRODUCTS_CACHE_KEY = 'cached_products';
 
-        // ------ Работа с localStorage ------
         function saveCartToLocalStorage() {
             localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart.items));
         }
@@ -344,7 +337,6 @@
             return false;
         }
 
-        // ------ Запрос с таймаутом ------
         async function fetchWithTimeout(url, options = {}, timeout = 8000) {
             const controller = new AbortController();
             const id = setTimeout(() => controller.abort(), timeout);
@@ -359,7 +351,6 @@
             }
         }
 
-        // ------ Загрузка товаров ------
         async function loadProducts() {
             try {
                 const data = await fetchWithTimeout('/api/products');
@@ -378,7 +369,6 @@
             }
         }
 
-        // ------ Загрузка корзины ------
         async function loadCart() {
             try {
                 const data = await fetchWithTimeout(`/api/cart/${userId}`);
@@ -392,13 +382,11 @@
             updateCartCount();
         }
 
-        // ------ Обновление счётчика на плавающей кнопке ------
         function updateCartCount() {
             const total = cart.items.reduce((sum, i) => sum + i.quantity, 0);
             document.getElementById('cart-count').textContent = total;
         }
 
-        // ------ Синхронизация одного элемента корзины с сервером (с локальным fallback) ------
         async function syncCartItem(productId, variantId, newQuantity, variantPrice, variantName) {
             try {
                 if (newQuantity === 0) {
@@ -414,12 +402,10 @@
                         body: JSON.stringify({ userId, productId, variantId, quantity: newQuantity })
                     });
                 }
-                // После успешной синхронизации перезагружаем корзину с сервера
                 await loadCart();
-                renderProducts(); // перерисовываем каталог
+                renderProducts();
             } catch (err) {
                 console.warn('Синхронизация не удалась, работаем локально:', err);
-                // Обновляем локальную корзину
                 const existing = cart.items.find(i => i.productId === productId && i.variantId === variantId);
                 if (existing) {
                     if (newQuantity === 0) {
@@ -442,7 +428,6 @@
             }
         }
 
-        // ------ Отрисовка каталога ------
         function renderProducts() {
             const container = document.getElementById('products-container');
             if (!products.length) {
@@ -450,7 +435,6 @@
                 return;
             }
 
-            // Группируем по категориям (как было раньше)
             const categories = {};
             products.forEach(p => {
                 const cat = p.category || 'Другое';
@@ -463,7 +447,7 @@
 
             for (let cat of order) {
                 if (categories[cat]) {
-                    html += `<h2 style="margin: 24px 0 8px 0; font-size: 20px; font-weight: 600;">${cat}</h2>`;
+                    html += `<h2 style="margin: 24px 0 8px 0; font-size: 18px; font-weight: 600;">${cat}</h2>`;
                     html += `<div class="products-grid">`;
                     categories[cat].forEach(product => {
                         html += renderProductCard(product);
@@ -472,9 +456,8 @@
                     delete categories[cat];
                 }
             }
-            // Остальные категории
             for (let cat in categories) {
-                html += `<h2 style="margin: 24px 0 8px 0; font-size: 20px; font-weight: 600;">${cat}</h2>`;
+                html += `<h2 style="margin: 24px 0 8px 0; font-size: 18px; font-weight: 600;">${cat}</h2>`;
                 html += `<div class="products-grid">`;
                 categories[cat].forEach(product => {
                     html += renderProductCard(product);
@@ -485,16 +468,15 @@
             container.innerHTML = html;
         }
 
-        // Отрисовка одной карточки товара (с вариантами)
         function renderProductCard(product) {
             const imageUrl = product.image || 'https://via.placeholder.com/300?text=Нет+фото';
-            const variantsToShow = product.variants.filter(v => v.name !== 'Россыпь'); // исключаем "Россыпь"
+            const variantsToShow = product.variants.filter(v => v.name !== 'Россыпь');
 
             let variantsHtml = '';
             variantsToShow.forEach(variant => {
                 const cartItem = cart.items.find(i => i.productId === product.id && i.variantId === variant.id);
                 const quantity = cartItem ? cartItem.quantity : 0;
-                const isActive = variant.is_active !== false; // true по умолчанию
+                const isActive = variant.is_active !== false;
 
                 let controlsHtml = '';
                 if (!isActive) {
@@ -545,7 +527,6 @@
             });
         }
 
-        // ------ API для корзины (вызываются из onclick) ------
         window.addToCart = function(productId, variantId, price, variantName) {
             syncCartItem(productId, variantId, 1, price, variantName);
         };
@@ -555,7 +536,6 @@
             syncCartItem(productId, variantId, newQuantity, price, variantName);
         };
 
-        // ------ Инициализация ------
         async function init() {
             const container = document.getElementById('products-container');
             container.innerHTML = '<div class="loading">Загрузка каталога...</div>';
