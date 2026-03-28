@@ -6,7 +6,6 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <title>Оформление заказа</title>
     <style>
-        /* все стили оставляем без изменений, как в вашем файле */
         body {
             font-family: Arial, sans-serif;
             padding: 10px;
@@ -229,34 +228,29 @@
             background: #8e44ad;
         }
         
-        .cancel-button {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            width: auto;
-            font-size: 14px;
-            margin-top: 10px;
-            display: inline-block;
-        }
-        
-        .cancel-button:hover {
-            background: #c82333;
-        }
-        
+        /* Увеличенная и заметная инструкция */
         .instruction {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 12px;
-            margin: 10px 0;
+            background: #fff3cd;
+            border-left: 6px solid #ffc107;
+            border-radius: 12px;
+            padding: 18px 16px;
+            margin: 15px 0;
             text-align: left;
-            font-size: 14px;
+            font-size: 16px;
+            line-height: 1.5;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .instruction p {
-            margin: 0;
-            color: #555;
+            margin: 0 0 8px 0;
+            color: #856404;
+        }
+        .instruction strong {
+            font-weight: 800;
+            font-size: 1.1em;
+        }
+        .instruction .bold-only {
+            font-weight: 800;
+            font-size: 1.1em;
         }
     </style>
 </head>
@@ -309,19 +303,20 @@
             
             <button id="copy-number-btn" class="copy-number-button">Скопировать номер заказа</button>
             
+            <!-- Увеличенная инструкция -->
             <div class="instruction">
                 <p>Выберите удобный мессенджер для связи.</p>
-                <p>Пришлите нам ТОЛЬКО номер заказа: <strong id="instruction-order-number"></strong></p>
-                <p>Так мы сможем с Вами связаться🟢</p>
+                <p>Пришлите нам <strong>ТОЛЬКО</strong> номер заказа: <strong id="instruction-order-number"></strong></p>
+                <p>Так мы сможем с Вами связаться 🟢</p>
             </div>
             
             <div class="messenger-buttons">
                 <a id="telegram-link" class="messenger-button telegram" target="_blank">Telegram</a>
-                <a id="vk-link" class="messenger-button vk" target="_blank">ВКонтакте</a>
+                <a id="vk-link" class="messenger-button vk" target="_blank">VK</a>
                 <a id="max-link" class="messenger-button max" target="_blank">MAX</a>
             </div>
             
-            <button id="cancel-order-btn" class="cancel-button">Отменить заказ</button>
+            <!-- Кнопка отмены заказа УДАЛЕНА -->
         </div>
     </div>
 
@@ -334,7 +329,7 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // ---- МНОГОПОЛЬЗОВАТЕЛЬСКИЙ РЕЖИМ ----
+        // Определяем userId (как в каталоге)
         let userId = tg.initDataUnsafe?.user?.id;
         if (!userId) {
             let storedId = localStorage.getItem('temp_user_id');
@@ -344,9 +339,7 @@
             }
             userId = storedId;
         }
-        console.log('Current userId:', userId);
 
-        const CART_STORAGE_KEY = `cart_${userId}`;
         const requestId = crypto.randomUUID();
 
         let cart = null;
@@ -357,95 +350,13 @@
         let currentOrderId = null;
         let maxBotName = null;
 
-        // Вспомогательная функция fetch с таймаутом
-        async function fetchWithTimeout(url, options = {}, timeout = 8000) {
-            const controller = new AbortController();
-            const id = setTimeout(() => controller.abort(), timeout);
-            try {
-                const response = await fetch(url, { ...options, signal: controller.signal });
-                clearTimeout(id);
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                return await response.json();
-            } catch (err) {
-                clearTimeout(id);
-                throw err;
-            }
-        }
-
-        // Загрузка корзины: сначала с сервера, при ошибке из localStorage
-        async function loadCart() {
-            try {
-                const cartData = await fetchWithTimeout(`/api/cart/${userId}`);
-                cart = cartData;
-                if (!cart.items) cart = { items: [] };
-                // сохраняем в localStorage актуальную версию
-                localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart.items));
-            } catch (err) {
-                console.warn('Не удалось загрузить корзину с сервера, используем локальную');
-                const stored = localStorage.getItem(CART_STORAGE_KEY);
-                if (stored) {
-                    try {
-                        cart = { items: JSON.parse(stored) };
-                    } catch (e) {
-                        cart = { items: [] };
-                    }
-                } else {
-                    cart = { items: [] };
-                }
-            }
-        }
-
-        // Сохранить корзину в localStorage
-        function saveCartToLocalStorage() {
-            if (cart && cart.items) {
-                localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart.items));
-            }
-        }
-
-        // Очистить корзину (локально и на сервере)
-        async function clearCart() {
-            // Удаляем корзину на сервере
-            try {
-                for (const item of cart.items) {
-                    await fetchWithTimeout('/api/cart/remove', {
-                        method: 'DELETE',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ userId, productId: item.productId, variantId: item.variantId })
-                    });
-                }
-            } catch (err) {
-                console.warn('Не удалось очистить корзину на сервере', err);
-            }
-            cart.items = [];
-            localStorage.removeItem(CART_STORAGE_KEY);
-        }
-
         async function loadConfig() {
             try {
-                const data = await fetchWithTimeout('/api/config');
+                const res = await fetch('/api/config');
+                const data = await res.json();
                 maxBotName = data.maxBotName;
             } catch (err) {
                 console.error('Ошибка загрузки конфигурации:', err);
-            }
-        }
-
-        async function loadProducts() {
-            try {
-                products = await fetchWithTimeout('/api/products');
-                if (!Array.isArray(products)) products = [];
-            } catch (err) {
-                console.warn('Не удалось загрузить товары', err);
-                products = [];
-            }
-        }
-
-        async function loadPickupLocations() {
-            try {
-                pickupLocations = await fetchWithTimeout('/api/pickup-locations');
-                if (!Array.isArray(pickupLocations)) pickupLocations = [];
-            } catch (err) {
-                console.warn('Не удалось загрузить точки самовывоза', err);
-                pickupLocations = [];
             }
         }
 
@@ -454,19 +365,32 @@
             await loadProducts();
             await loadCart();
             await loadPickupLocations();
-            
-            // Если корзина пуста, перенаправляем в каталог
-            if (!cart || !cart.items || cart.items.length === 0) {
-                window.location.href = 'index.html';
-                return;
-            }
-            
             renderOrderSummary();
             updateCartCount();
             renderPickupLocations();
         }
 
+        async function loadProducts() {
+            const res = await fetch('/api/products');
+            products = await res.json();
+        }
+
+        async function loadCart() {
+            const res = await fetch(`/api/cart/${userId}`);
+            cart = await res.json();
+        }
+
+        async function loadPickupLocations() {
+            const res = await fetch('/api/pickup-locations');
+            pickupLocations = await res.json();
+        }
+
         function renderOrderSummary() {
+            if (!cart || !cart.items || cart.items.length === 0) {
+                window.location.href = 'index.html';
+                return;
+            }
+
             const itemsList = document.getElementById('items-list');
             itemsList.innerHTML = '';
 
@@ -474,8 +398,7 @@
             cart.items.forEach(item => {
                 const product = products.find(p => p.id === item.productId);
                 if (!product) return;
-                // В корзине хранится цена на момент добавления? Предположим, что в item есть priceAtTime
-                const price = item.priceAtTime || 0;
+                const price = item.priceAtTime;
                 const itemTotal = price * item.quantity;
                 total += itemTotal;
 
@@ -557,28 +480,12 @@
             };
         }
 
-        async function cancelOrder() {
-            if (!confirm('Вы уверены, что хотите отменить заказ?')) return;
-            try {
-                await fetchWithTimeout(`/api/order/${currentOrderId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ status: 'Отменен' })
-                });
-                window.location.href = 'index.html';
-            } catch (err) {
-                console.error('Ошибка:', err);
-                alert('Ошибка при отмене заказа');
-            }
-        }
-
         function closeModalAndGoToCatalog() {
             document.getElementById('success-modal').style.display = 'none';
             window.location.href = 'index.html';
         }
 
         document.getElementById('close-modal-btn').onclick = closeModalAndGoToCatalog;
-        document.getElementById('cancel-order-btn').onclick = cancelOrder;
 
         const confirmBtn = document.getElementById('confirm-button');
         confirmBtn.addEventListener('click', async (e) => {
@@ -644,14 +551,14 @@
                     }))
                 };
 
-                const response = await fetchWithTimeout('/api/order', {
+                const response = await fetch('/api/order', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(orderData)
                 });
 
-                if (response) {
-                    const result = response;
+                if (response.ok) {
+                    const result = await response.json();
                     console.log('✅ Ответ от сервера:', result);
                     
                     const telegramLink = `tg://resolve?domain=dpsbor_site_bot&start=order_${result.orderNumber}`;
@@ -668,11 +575,12 @@
                     
                     showModal(result.id || 'temp_id', result.orderNumber);
                     
-                    // Очищаем корзину после успешного заказа
-                    await clearCart();
+                    // Очищаем корзину после оформления
+                    cart.items = [];
                     updateCartCount();
                 } else {
-                    console.error('Ошибка при оформлении заказа');
+                    const error = await response.json();
+                    console.error('Ошибка при оформлении заказа:', error);
                     alert('Ошибка при оформлении заказа. Попробуйте ещё раз.');
                 }
             } catch (err) {
